@@ -29,7 +29,8 @@ app.add_middleware(
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],
+    allow_headers=["origin", "content-type", "accept", "authorization", "ngrok-skip-browser-warning"],
 )
 
 from starlette.middleware.sessions import SessionMiddleware
