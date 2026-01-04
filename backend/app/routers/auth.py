@@ -103,9 +103,12 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
 from ..core.security import oauth
 from starlette.requests import Request
 
+# ... keep your imports and other code above ...
+
 @router.get("/google/login")
 async def login_google(request: Request):
-    GOOGLE_REDIRECT_URI = "http://localhost:8000/auth/google/callback"
+    # FIXED: Use your actual Ngrok URL
+    GOOGLE_REDIRECT_URI = "https://abrasively-unmeticulous-rudolf.ngrok-free.dev/auth/google/callback"
     return await oauth.google.authorize_redirect(request, GOOGLE_REDIRECT_URI)
 
 @router.get("/google/callback")
@@ -117,7 +120,6 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
         # 2. Get User Info
         user_info = token.get('userinfo')
         if not user_info:
-             # Depending on authlib version, it might be in 'userinfo' or we need to parse id_token
              user_info = await oauth.google.parse_id_token(request, token)
              
         email = user_info.get("email")
@@ -143,8 +145,10 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
         # Create JWT
         access_token = create_access_token(data={"sub": email, "role": db_user.role})
         
-        # Redirect to frontend
-        return RedirectResponse(f"http://localhost:3000/auth/callback?token={access_token}")
+        # FIXED: Redirect to your live Vercel app, NOT localhost:3000
+        # (I am guessing your Vercel link based on your repo name, check it!)
+        FRONTEND_URL = "https://codemaster-ai.vercel.app" 
+        return RedirectResponse(f"{FRONTEND_URL}/auth/callback?token={access_token}")
         
     except Exception as e:
         print(f"Google Auth Error: {e}")
