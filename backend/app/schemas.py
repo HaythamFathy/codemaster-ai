@@ -29,6 +29,13 @@ class LessonBase(BaseModel):
 class LessonCreate(LessonBase):
     course_id: int
 
+class LessonUpdate(BaseModel):
+    title: Optional[str] = None
+    video_url: Optional[str] = None
+    content: Optional[str] = None
+    ai_prompt: Optional[str] = None
+    quiz_data: Optional[str] = None
+
 class Lesson(LessonBase):
     id: int
     course_id: int
@@ -43,6 +50,12 @@ class CourseBase(BaseModel):
 
 class CourseCreate(CourseBase):
     pass
+
+class CourseUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    difficulty: Optional[str] = None
+    image_url: Optional[str] = None
 
 class Course(CourseBase):
     id: int

@@ -13,6 +13,8 @@ app = FastAPI(title="CodeMaster AI API")
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(courses.router, prefix="/courses", tags=["courses"])
+from .routers import lessons # Import lessons router
+app.include_router(lessons.router, prefix="/lessons", tags=["lessons"])
 app.include_router(submissions.router, tags=["submissions"])
 app.include_router(ai.router, prefix="/api", tags=["ai"])
 
