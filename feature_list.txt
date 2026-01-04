@@ -1,0 +1,40 @@
+CodeMaster AI - Feature Summary
+===============================
+
+1. Authentication & Users
+-------------------------
+- secure Registration & Login functionality (JWT Tokens).
+- Password Hashing (Bcrypt).
+- Protected Dashboard routes (Redirects unauthenticated users).
+
+2. Learning Environment
+-----------------------
+- Video Player: Embedded YouTube player for lessons.
+- In-Browser IDE: Monaco Editor (VS Code engine) with syntax highlighting.
+- Split-View Layout: Watch video and code side-by-side.
+
+3. Code Execution System
+------------------------
+- "Run Code" Button: Sends code to the backend.
+- Secure Execution: 
+  - Primary: Docker Container (Isolated Sandbox).
+  - Fallback: Local Python Process (Safe fallback for non-Docker envs).
+- Live Output: real-time capture of Stdout (print statements) and Stderr (errors).
+- correctness Verification: Checks output against expected values (e.g., "Hello World").
+
+4. AI Tutor
+-----------
+- Analyze Error: If code fails, AI provides a Socratic hint.
+- Success Message: "Supportive Senior Engineer" persona congratulates on passing tests.
+- Infrastructure: Integration with OpenAI API (v0.28 compatible).
+
+5. Content Management
+---------------------
+- Database Seeding: "Pilot Course" auto-created on startup.
+- Dynamic Course Listing: Dashboard fetches available courses from DB.
+
+6. Tech Stack
+-------------
+- Frontend: Next.js 14, Tailwind CSS, TypeScript.
+- Backend: FastAPI, SQLAlchemy, Pydantic.
+- Database: SQLite (local) / PostgreSQL (production ready).

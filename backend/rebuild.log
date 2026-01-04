@@ -1,0 +1,13 @@
+C:\Users\user\AppData\Local\Programs\Python\Python37\lib\site-packages\pydantic\_internal\_config.py:321: UserWarning: Valid config keys have changed in V2:
+* 'orm_mode' has been renamed to 'from_attributes'
+  warnings.warn(message, UserWarning)
+C:\Users\user\AppData\Local\Programs\Python\Python37\lib\site-packages\jose\backends\cryptography_backend.py:4: CryptographyDeprecationWarning: Python 3.7 is no longer supported by the Python core team and support for it is deprecated in cryptography. The next release of cryptography will remove support for Python 3.7.
+  from cryptography.exceptions import InvalidSignature, InvalidTag
+Traceback (most recent call last):
+  File "rebuild_db.py", line 70, in <module>
+    rebuild()
+  File "rebuild_db.py", line 9, in rebuild
+    print("\u26a0\ufe0f  Starting Database Rebuild...")
+  File "C:\Users\user\AppData\Local\Programs\Python\Python37\lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 0-1: character maps to <undefined>

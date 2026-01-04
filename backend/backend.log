@@ -1,0 +1,10 @@
+c:\users\user\appdata\local\programs\python\python37\lib\site-packages\pydantic\_internal\_config.py:321: UserWarning: Valid config keys have changed in V2:
+* 'orm_mode' has been renamed to 'from_attributes'
+  warnings.warn(message, UserWarning)
+c:\users\user\appdata\local\programs\python\python37\lib\site-packages\jose\backends\cryptography_backend.py:4: CryptographyDeprecationWarning: Python 3.7 is no longer supported by the Python core team and support for it is deprecated in cryptography. The next release of cryptography will remove support for Python 3.7.
+  from cryptography.exceptions import InvalidSignature, InvalidTag
+INFO:     Started server process [17696]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:56109 - "GET /courses/1 HTTP/1.1" 200 OK

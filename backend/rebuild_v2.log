@@ -1,0 +1,19 @@
+C:\Users\user\AppData\Local\Programs\Python\Python37\lib\site-packages\pydantic\_internal\_config.py:321: UserWarning: Valid config keys have changed in V2:
+* 'orm_mode' has been renamed to 'from_attributes'
+  warnings.warn(message, UserWarning)
+C:\Users\user\AppData\Local\Programs\Python\Python37\lib\site-packages\jose\backends\cryptography_backend.py:4: CryptographyDeprecationWarning: Python 3.7 is no longer supported by the Python core team and support for it is deprecated in cryptography. The next release of cryptography will remove support for Python 3.7.
+  from cryptography.exceptions import InvalidSignature, InvalidTag
+(trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\user\AppData\Local\Programs\Python\Python37\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+Starting Database Rebuild...
+Deleted codemaster.db
+app/codemaster.db not found.
+Creating tables...
+User columns: ['id', 'name', 'email', 'hashed_password', 'role', 'xp_points', 'current_streak', 'last_active_date']
+Schema verification passed.
+Seeding Course...
+Seeding Test User...
+Database Rebuild Complete!

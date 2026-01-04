@@ -1,0 +1,36 @@
+# General
+.DS_Store
+Thumbs.db
+
+# Environment Variables (Secrets)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+!*.example
+!.env.example
+
+# Python / Backend
+backend/__pycache__/
+backend/*.pyc
+backend/venv/
+backend/.venv/
+backend/codemaster.db
+backend/backend.log
+
+# Node / Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.vercel/
+
+# IDEs
+.vscode/
+.idea/
