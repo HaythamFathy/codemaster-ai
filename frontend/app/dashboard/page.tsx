@@ -60,12 +60,23 @@ export default function DashboardPage() {
                             <p className="text-gray-500">No courses available yet.</p>
                         ) : (
                             courses.map((course) => (
-                                <div key={course.id} className="rounded-lg border bg-white p-4 shadow-sm">
-                                    <h3 className="text-lg font-bold">{course.title}</h3>
-                                    <p className="text-sm text-gray-500">{course.difficulty}</p>
-                                    <Link href={`/learn/${course.id}/1`}>
-                                        <Button className="mt-4 w-full">Start Learning</Button>
-                                    </Link>
+                                <div key={course.id} className="overflow-hidden rounded-lg border bg-white shadow-sm transition hover:shadow-md">
+                                    {course.image_url && (
+                                        <div className="relative h-48 w-full">
+                                            <img
+                                                src={course.image_url}
+                                                alt={course.title}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="p-4">
+                                        <h3 className="text-lg font-bold">{course.title}</h3>
+                                        <p className="text-sm text-gray-500">{course.difficulty}</p>
+                                        <Link href={`/learn/${course.id}/1`}>
+                                            <Button className="mt-4 w-full">Start Learning</Button>
+                                        </Link>
+                                    </div>
                                 </div>
                             ))
                         )}

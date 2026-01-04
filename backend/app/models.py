@@ -28,6 +28,7 @@ class Course(Base):
     title = Column(String, index=True)
     description = Column(String, nullable=True) # Added description
     difficulty = Column(String)
+    image_url = Column(String, nullable=True) # Added image_url
     
     lessons = relationship("Lesson", back_populates="course")
 

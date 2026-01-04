@@ -39,6 +39,7 @@ class CourseBase(BaseModel):
     title: str
     description: Optional[str] = None
     difficulty: str
+    image_url: Optional[str] = None
 
 class CourseCreate(CourseBase):
     pass

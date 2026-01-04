@@ -107,8 +107,9 @@ from starlette.requests import Request
 
 @router.get("/google/login")
 async def login_google(request: Request):
-    # FIXED: Use your actual Ngrok URL
-    GOOGLE_REDIRECT_URI = "https://abrasively-unmeticulous-rudolf.ngrok-free.dev/auth/google/callback"
+    # DYNAMIC: Use environment variables with local fallbacks
+    backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+    GOOGLE_REDIRECT_URI = f"{backend_url}/auth/google/callback"
     return await oauth.google.authorize_redirect(request, GOOGLE_REDIRECT_URI)
 
 @router.get("/google/callback")
@@ -145,10 +146,9 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
         # Create JWT
         access_token = create_access_token(data={"sub": email, "role": db_user.role})
         
-        # FIXED: Redirect to your live Vercel app, NOT localhost:3000
-        # (I am guessing your Vercel link based on your repo name, check it!)
-        FRONTEND_URL = "https://codemaster-ai.vercel.app" 
-        return RedirectResponse(f"{FRONTEND_URL}/auth/callback?token={access_token}")
+        # DYNAMIC: Use environment variable for frontend redirect
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        return RedirectResponse(f"{frontend_url}/auth/callback?token={access_token}")
         
     except Exception as e:
         print(f"Google Auth Error: {e}")
