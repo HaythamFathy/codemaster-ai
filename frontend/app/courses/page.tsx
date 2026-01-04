@@ -61,33 +61,41 @@ export default function CoursesPage() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                    {courses.map((course) => (
-                        <div key={course.id} className="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-300 flex flex-col">
-                            <div className="p-6 flex-1">
-                                <div className="flex items-center justify-between mb-4">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide 
+                    {!Array.isArray(courses) || courses.length === 0 ? (
+                        <div className="col-span-full text-center text-gray-500">No courses available.</div>
+                    ) : (
+                        courses.map((course: any) => (
+                            <div key={course.id} className="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-300 flex flex-col">
+                                {course.image_url && (
+                                    <div className="h-48 w-full relative">
+                                        <img src={course.image_url} alt={course.title} className="w-full h-full object-cover" />
+                                    </div>
+                                )}
+                                <div className="p-6 flex-1">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide 
                                         ${course.difficulty === 'Beginner' ? 'bg-green-100 text-green-800' :
-                                            course.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :
-                                                'bg-red-100 text-red-800'}`}>
-                                        {course.difficulty}
-                                    </span>
-                                    <Video className="h-5 w-5 text-gray-400" />
+                                                course.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-red-100 text-red-800'}`}>
+                                            {course.difficulty}
+                                        </span>
+                                        <Video className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                                        {course.title}
+                                    </h3>
+                                    <p className="text-gray-500 text-sm">
+                                        Learn key concepts through video tutorials and interactive coding challenges.
+                                    </p>
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                    {course.title}
-                                </h3>
-                                <p className="text-gray-500 text-sm">
-                                    Learn key concepts through video tutorials and interactive coding challenges.
-                                </p>
+                                <div className="bg-gray-50 px-6 py-4 border-t">
+                                    <Button className="w-full flex items-center justify-center gap-2" onClick={() => handleStartLesson(course.id)}>
+                                        <Code2 className="h-4 w-4" />
+                                        Start Learning
+                                    </Button>
+                                </div>
                             </div>
-                            <div className="bg-gray-50 px-6 py-4 border-t">
-                                <Button className="w-full flex items-center justify-center gap-2" onClick={() => handleStartLesson(course.id)}>
-                                    <Code2 className="h-4 w-4" />
-                                    Start Learning
-                                </Button>
-                            </div>
-                        </div>
-                    ))}
+                        )))}
                 </div>
             </div>
         </div>

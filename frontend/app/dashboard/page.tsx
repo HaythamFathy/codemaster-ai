@@ -28,8 +28,8 @@ export default function DashboardPage() {
                 // Fetch User Stats
                 const userRes = await api.get("/auth/me");
                 setUserStats({
-                    streak: userRes.data.current_streak,
-                    xp: userRes.data.xp_points
+                    streak: userRes.data?.current_streak || 0,
+                    xp: userRes.data?.xp_points || 0
                 });
             } catch (err) {
                 console.error("Failed to load dashboard data", err);
@@ -56,7 +56,7 @@ export default function DashboardPage() {
                 <section>
                     <h2 className="mb-4 text-xl font-semibold text-gray-800">Available Courses</h2>
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {courses.length === 0 ? (
+                        {!Array.isArray(courses) || courses.length === 0 ? (
                             <p className="text-gray-500">No courses available yet.</p>
                         ) : (
                             courses.map((course) => (

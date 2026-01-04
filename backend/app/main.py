@@ -34,7 +34,20 @@ app.add_middleware(
 
 from starlette.middleware.sessions import SessionMiddleware
 import os
-app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "supersecretkey"))
+
+# Secure session middleware for Ngrok/Production
+is_production = os.getenv("BACKEND_URL", "").startswith("https")
+app.add_middleware(
+    SessionMiddleware, 
+    secret_key=os.getenv("SECRET_KEY", "supersecretkey"), 
+    https_only=True, # Always force secure cookies if we think we might be in prod/ngrok
+    same_site="none" # Allow cross-site cookies (needed for some redirect flows)
+)
+
+# Trust headers from Ngrok/Proxies (X-Forwarded-Proto, etc.)
+# Logic added here to avoid shell quoting issues with --forwarded-allow-ips '*'
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
 
 @app.get("/")
 async def root():

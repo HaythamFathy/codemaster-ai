@@ -107,6 +107,9 @@ from starlette.requests import Request
 
 @router.get("/google/login")
 async def login_google(request: Request):
+    # Clear session to prevent cookie bloat (4KB limit)
+    request.session.clear()
+    
     # DYNAMIC: Use environment variables with local fallbacks
     backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
     GOOGLE_REDIRECT_URI = f"{backend_url}/auth/google/callback"
