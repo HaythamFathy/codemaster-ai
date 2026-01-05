@@ -3,6 +3,8 @@ from sqlalchemy.orm import relationship
 from .database import Base
 import enum
 
+from datetime import datetime
+
 class UserRole(str, enum.Enum):
     STUDENT = "student"
     ADMIN = "admin"
@@ -59,3 +61,15 @@ class Submission(Base):
     exit_code = Column(Integer, nullable=True)
 
     user = relationship("User", back_populates="submissions")
+
+class UserTask(Base):
+    __tablename__ = "user_tasks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    lesson_id = Column(Integer, ForeignKey("lessons.id"))
+    task_json = Column(String) # Stores the JSON blob from AI
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
+    lesson = relationship("Lesson")

@@ -70,7 +70,7 @@ class QuizSubmission(BaseModel):
     score: int
 
 class SubmissionCreate(SubmissionBase):
-    pass
+    lesson_id: int
 
 class Submission(SubmissionBase):
     id: int

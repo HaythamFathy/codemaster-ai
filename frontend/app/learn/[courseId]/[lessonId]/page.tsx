@@ -6,7 +6,7 @@ import { VideoPlayer } from "@/components/VideoPlayer";
 import { CodeEditor } from "@/components/CodeEditor";
 import { Button } from "@/components/ui/button";
 import { Play, CheckCircle, AlertCircle, Loader2, BookOpen, BrainCircuit, Trophy } from "lucide-react";
-import api from "@/lib/api";
+import api, { getLessonTask } from "@/lib/api";
 import confetti from "canvas-confetti";
 
 interface QuizQuestion {
@@ -18,15 +18,15 @@ interface QuizQuestion {
 interface Course {
     id: number;
     title: string;
-    video_url: string;
-    difficulty: string;
-    ai_prompt: string;
-    quiz_data: string; // JSON string
+    description: string;
+    lessons: any[];
 }
 
 export default function LessonPage() {
     const params = useParams();
     const [course, setCourse] = useState<Course | null>(null);
+    const [lesson, setLesson] = useState<any>(null);
+    const [task, setTask] = useState<any>(null);
     const [activeTab, setActiveTab] = useState<"learn" | "quiz">("learn");
 
     // Quiz State
@@ -42,26 +42,41 @@ export default function LessonPage() {
     const [isRunning, setIsRunning] = useState(false);
 
     useEffect(() => {
-        const fetchCourse = async () => {
+        const fetchData = async () => {
             try {
+                // 1. Fetch Course & Lesson
                 const res = await api.get(`/courses/${params.courseId}`);
                 setCourse(res.data);
-                // Set initial code placeholder
-                setCode("# Write your code here\n");
 
-                if (res.data.quiz_data) {
+                // Find current lesson
+                const currentLesson = res.data.lessons?.find((l: any) => l.id == params.lessonId);
+                setLesson(currentLesson);
+
+                if (currentLesson) {
+                    if (currentLesson.quiz_data) {
+                        try {
+                            setQuizQuestions(JSON.parse(currentLesson.quiz_data));
+                        } catch (e) {
+                            console.error("Failed to parse quiz data", e);
+                        }
+                    }
+
+                    // 2. Fetch Unique AI Task
                     try {
-                        setQuizQuestions(JSON.parse(res.data.quiz_data));
+                        const taskRes = await getLessonTask(params.lessonId as string);
+                        setTask(taskRes.data);
+                        setCode(taskRes.data.initial_code || "# Write your code here\n");
                     } catch (e) {
-                        console.error("Failed to parse quiz data", e);
+                        console.error("Failed to fetch task", e);
+                        setCode("# Write your code here\n"); // Fallback
                     }
                 }
             } catch (err) {
                 console.error("Failed to fetch course", err);
             }
         };
-        if (params.courseId) fetchCourse();
-    }, [params.courseId]);
+        if (params.courseId && params.lessonId) fetchData();
+    }, [params.courseId, params.lessonId]);
 
     const handleCodeChange = (value: string | undefined) => {
         if (value) setCode(value);
@@ -71,7 +86,11 @@ export default function LessonPage() {
         setIsRunning(true);
         setOutput(null);
         try {
-            const res = await api.post("/submit_code", { code_content: code });
+            // Updated to use named export and pass lesson_id
+            const res = await api.post("/submissions/submit_code", {
+                code_content: code,
+                lesson_id: parseInt(params.lessonId as string)
+            });
             setOutput({
                 passed: res.data.passed_boolean,
                 feedback: res.data.ai_feedback,
@@ -128,7 +147,7 @@ export default function LessonPage() {
             {/* Header */}
             <header className="flex h-16 items-center justify-between border-b bg-white px-6 shadow-sm">
                 <h1 className="text-xl font-bold text-gray-800">
-                    {course.title}
+                    {course.title}: <span className="font-normal text-gray-600">{lesson?.title || "Lesson"}</span>
                 </h1>
                 <div className="flex space-x-2">
                     <Button
@@ -156,14 +175,24 @@ export default function LessonPage() {
                         {/* Left Panel: Video */}
                         <div className="flex flex-1 flex-col overflow-y-auto border-r bg-white p-6 lg:w-1/2">
                             <div className="mb-6">
-                                <VideoPlayer url={course.video_url} />
+                                {lesson?.video_url && <VideoPlayer url={lesson.video_url} />}
                             </div>
                             <div className="prose max-w-none">
                                 <h2 className="text-2xl font-bold">Instructions</h2>
-                                <p className="text-gray-600">Watch the video and solve the challenge on the right.</p>
-                                <div className="rounded-md bg-blue-50 p-4 text-blue-800">
-                                    <strong>AI Prompt:</strong> {course.ai_prompt || "No specific prompt."}
-                                </div>
+                                {task ? (
+                                    <>
+                                        <h3 className="text-lg font-semibold text-blue-700">{task.title}</h3>
+                                        <div className="text-gray-700 whitespace-pre-wrap">{task.description}</div>
+                                    </>
+                                ) : (
+                                    <p className="text-gray-600">Loading your unique challenge...</p>
+                                )}
+
+                                {lesson?.ai_prompt && (
+                                    <div className="mt-4 rounded-md bg-gray-50 p-4 text-xs text-gray-500">
+                                        <strong>Context:</strong> {lesson.ai_prompt}
+                                    </div>
+                                )}
                             </div>
                         </div>
 

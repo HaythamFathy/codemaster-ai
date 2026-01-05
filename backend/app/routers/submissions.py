@@ -8,11 +8,14 @@ import os
 
 router = APIRouter()
 
+from .auth import get_current_user
+
 @router.post("/submit_code", response_model=schemas.Submission)
-def submit_code(submission: schemas.SubmissionCreate, db: Session = Depends(get_db)):
+def submit_code(submission: schemas.SubmissionCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     """
     Executes student code using the secure Docker executor.
     """
+
     # 1. Prepare to run code
     code = submission.code_content
     
@@ -79,24 +82,49 @@ def submit_code(submission: schemas.SubmissionCreate, db: Session = Depends(get_
         executor_result["stderr"] = f"Execution Error ({execution_mode}): {str(e)}"
         executor_result["exit_code"] = -1
 
-    # 3. Analyze Result (Basic Output Matching for MVP)
-    # In a real app, we'd fetch the specific test cases for this lesson from the DB.
-    # For now, we hardcode the check for Lesson 1 ("Hello World").
+    # 3. Analyze Result
+    # Fetch proper test cases from the UserTask if available
+    user_task = db.query(models.UserTask).filter(
+        models.UserTask.user_id == current_user.id,
+        models.UserTask.lesson_id == submission.lesson_id
+    ).first()
+
+    passed = False
+    feedback = "Unknown Error"
     
-    stdout_clean = executor_result.get("stdout", "").strip()
-    
-    # Logic: Pass if exit_code is 0 AND output contains "Hello World"
-    # (Or if it's just a generic playground, pass if exit_code is 0)
-    
-    is_correct_output = "Hello World" in stdout_clean
-    passed = (executor_result["exit_code"] == 0 and is_correct_output)
-    
-    if passed:
-        feedback = "Great job! You successfully defined the variable and printed it."
-    elif executor_result["exit_code"] != 0:
-        feedback = "Code Error: Your code crashed. Check the Stderr tab."
+    if user_task:
+        try:
+            task_data = json.loads(user_task.task_json)
+            test_cases = task_data.get("test_cases", [])
+            
+            # For MVP, we check just the first test case output match
+            # In real system, we'd run code with inputs. Here we just check stdout match.
+            if test_cases:
+                expected_output = test_cases[0].get("output", "").strip()
+                stdout_clean = executor_result.get("stdout", "").strip()
+                
+                # Check for partial match or exact match depending on lenient logic
+                if expected_output.lower() in stdout_clean.lower():
+                    passed = True
+                    feedback = "Test Passed! Your output matches the expected result."
+                else:
+                    passed = False
+                    feedback = f"Incorrect Output. Expected something like '{expected_output}', but got:\n{stdout_clean}"
+            else:
+                # Fallback if no test cases
+                passed = (executor_result["exit_code"] == 0)
+                feedback = "Run Successful! (No test cases defined)"
+        except:
+             passed = (executor_result["exit_code"] == 0)
+             feedback = "Run Successful! (Failed to parse test cases)"
     else:
-        feedback = f"Incorrect Output. Expected 'Hello World', but got: '{stdout_clean}'"
+        # Fallback if no UserTask found (legacy behavior)
+        passed = (executor_result["exit_code"] == 0)
+        feedback = "Run Successful! (Generic Check)"
+
+    if executor_result["exit_code"] != 0:
+        passed = False
+        feedback = "Runtime Error: Your code crashed. Check the Stderr tab."
 
     
     # 4. Save to DB

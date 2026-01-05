@@ -15,11 +15,14 @@ app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(courses.router, prefix="/courses", tags=["courses"])
 from .routers import lessons # Import lessons router
 app.include_router(lessons.router, prefix="/lessons", tags=["lessons"])
-app.include_router(submissions.router, tags=["submissions"])
+app.include_router(submissions.router, prefix="/submissions", tags=["submissions"])
 app.include_router(ai.router, prefix="/api", tags=["ai"])
 
 from .routers import admin
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
+
+from .routers import tasks
+app.include_router(tasks.router, prefix="/api", tags=["tasks"])
 
 import os
 
@@ -30,7 +33,6 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
     allow_methods=["*"],
     allow_headers=["origin", "content-type", "accept", "authorization", "ngrok-skip-browser-warning"],
 )

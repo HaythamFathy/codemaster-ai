@@ -14,11 +14,32 @@ def generate_challenge(video_topic: str):
     Returns a dictionary with 'description', 'initial_code', and 'test_cases'.
     """
     if not api_key:
-        return {
-            "description": f"Mock Challenge for {video_topic} (No API Key)",
-            "initial_code": "# Write your code here",
-            "test_cases": [{"input": "1", "output": "1"}]
-        }
+        import random
+        challenges = [
+            {
+                "title": "Variable Mastery",
+                "description": f"Create a variable called `my_var` and assign it a value based on {video_topic}. Then print its type.",
+                "initial_code": "my_var = \n# Print type here",
+                "test_cases": [{"input": "", "output": "<class"}]
+            },
+            {
+                "title": "Data Type Detective",
+                "description": f"Someone mixed up the data types! {video_topic}. Cast a string to an integer and print the result + 10.",
+                "initial_code": "val = '42'\n# Your code",
+                "test_cases": [{"input": "", "output": "52"}]
+            },
+            {
+                "title": "The Printer",
+                "description": f"Write a function that takes {video_topic} as input and prints it three times.",
+                "initial_code": "def printer(val):\n    pass",
+                "test_cases": [{"input": "a", "output": "aaa"}]
+            }
+        ]
+        chosen = random.choice(challenges)
+        # Ensure description handles the injected context gracefully
+        clean_topic = video_topic.split('. Context:')[0]
+        chosen['description'] = chosen['description'].replace(video_topic, clean_topic) + " (Mock AI Mode)"
+        return chosen
 
     system_prompt = "You are a programming instructor. Generate a coding challenge based on the provided topic."
     user_prompt = f"""
