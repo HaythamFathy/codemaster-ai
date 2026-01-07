@@ -1,49 +1,36 @@
 DEPLOYMENT INSTRUCTIONS FOR VERCEL
 ==================================
 
-I have simplified the setup. You now have a root `package.json` that handles the build automatically.
+**CRITICAL FIX:** In your previous attempt, you typed "(default)" into the settings field. You must NOT type that.
 
 1. Push to GitHub
 -----------------
-Run these commands in your VS Code terminal to save the fixes:
+(You have already promoted the code, so you can skip this if you've pushed the latest package.json).
 
-   git add .
-   git commit -m "Fix Vercel build and restructure"
-   git push origin main
+2. Import/Configure in Vercel
+-----------------------------
+- Go to your Project Settings in Vercel (or create new).
+- **Framework Preset**: Next.js
+- **Root Directory**: `./` 
 
-2. Import Project in Vercel
----------------------------
-- Go to https://vercel.com/new
-- Select your repository (`haythamfathy/codemaster-ai`).
-- Leave **ALL** Build and Output settings at their **Default** values.
-  - Framework Preset: Other (or Next.js, doesn't matter much with custom root package.json, but Next.js is fine)
-  - Root Directory: `./` (Default)
-  - Build Command: `npm run build` (Default)
-  - Output Directory: `frontend/.next` (Important: The build script I made outputs here, but Vercel might expect `.next` in root. 
-    *Correction*: With Next.js preset, it looks for `.next`.
-    *Wait*, my root package.json builds into `frontend/.next`.
-    *Action*: I should probably override the Output Directory in Vercel settings to `frontend/.next` OR move the .next folder.
-    
-    *Let's check Vercel behavior*: If Root is `./`, Vercel expects output in `./.next` for Next.js.
-    *My script*: `cd frontend && npm run build`. This creates `frontend/.next`.
-    *Solution*: Set "Output Directory" to `frontend/.next`.
+**BUILD & DEVELOPMENT SETTINGS (IMPORTANT):**
+You must type these EXACTLY as shown below. Do not add any extra text.
 
-    **REVISED INSTRUCTIONS FOR SETTINGS:**
-    - Root Directory: `./`
-    - Build Command: `npm run build`
-    - Output Directory: `frontend/.next`  <-- CHANGE THIS
+- **Build Command**: `npm run build`
+- **Output Directory**: `frontend/.next`
+- **Install Command**: `npm install`
+  (Leave it as `npm install` or OVERRIDE it with that text. DO NOT type "(default)")
 
 3. Environment Variables
 ------------------------
-Add these in the deployment screen:
-
-   Key                          Value
-   ---                          -----
+(Same as before)
    SECRET_KEY                   <random_string>
    ALGORITHM                    HS256
    ACCESS_TOKEN_EXPIRE_MINUTES  30
    ALLOWED_ORIGINS              https://your-project.vercel.app,http://localhost:3000
 
-4. Deploy
----------
-Click "Deploy".
+4. Redeploy
+-----------
+- Go to the "Deployments" tab in Vercel.
+- Click the three dots on the failed deployment -> "Redeploy".
+- Make sure the settings match above.

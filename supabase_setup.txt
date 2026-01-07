@@ -1,0 +1,47 @@
+SUPABASE SETUP GUIDE
+====================
+
+1. Create a Supabase Project
+----------------------------
+1. Go to https://supabase.com/ and sign up/log in.
+2. Click "New Project".
+3. Choose your organization, name it `codemaster-ai`, and set a database password (save this password!).
+4. Select a region close to your Vercel deployment (e.g., US East if your Vercel is in US East).
+5. Click "Create new project".
+6. Wait for it to finish setting up (takes ~1 minute).
+
+2. Get Connection String
+------------------------
+1. Once the project is ready, go to Project Settings (gear icon) -> Database.
+2. Under "Connection pooling", enable the checkbox if it's there (optional checking, but recommended).
+   *Actually, easier path:*
+   Click the "Connect" button at the top right of the dashboard.
+3. Select "URIs".
+4. Copy the connection string. It looks like:
+   `postgresql://postgres.xxxx:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres`
+5. Replace `[YOUR-PASSWORD]` with the password you created in step 1.
+postgresql://postgres:[Haytham@Pua012]@db.ldkywwemutwqdrdamhfz.supabase.co:5432/postgres
+3. Configure Vercel
+-------------------
+1. Go to your Vercel Project Dashboard.
+2. Click "Settings" -> "Environment Variables".
+3. Add a new variable:
+   - Key: `DATABASE_URL`
+   - Value: (The connection string from Step 2)
+4. Click "Save".
+
+4. Redeploy
+-----------
+1. Go to the "Deployments" tab in Vercel.
+2. Click the three dots on the latest deployment -> "Redeploy".
+3. Verify: Vercel will now use Supabase instead of the local SQLite file.
+
+5. Initialize the Database
+--------------------------
+Since this is a fresh database, it has no tables. The backend should automatically create tables when it runs, because `app/main.py` calls `Base.metadata.create_all(bind=engine)`.
+- Just visiting the site/API logic should create the tables.
+- If you need test data, you might need to run a script locally connected to this remote DB, or use the `seed_db.py` script locally while setting `DATABASE_URL` to the remote one.
+
+   # Running Seed Script Locally
+   $env:DATABASE_URL="your_supabase_url"
+   python backend/seed_db.py

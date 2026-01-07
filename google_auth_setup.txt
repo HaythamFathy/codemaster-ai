@@ -1,0 +1,50 @@
+GOOGLE AUTH SETUP FOR VERCEL
+============================
+
+1. Go to Google Cloud Console
+-----------------------------
+1. Visit https://console.cloud.google.com/
+2. Select your project (the one you used for localhost development).
+
+2. Update Credentials
+---------------------
+1. Go to "APIs & Services" -> "Credentials".
+2. Click on your existing "OAuth 2.0 Client ID" (or create a new one).
+
+3. Configure URLs
+-----------------
+You must add your Vercel URLs here.
+
+A) **Authorized JavaScript Origins**
+   Add your Vercel production URL:
+   - `https://your-project-name.vercel.app`
+
+B) **Authorized Redirect URIs**
+   Add the callback URL. **Critical:** Use the `/api` prefix because the backend handles this.
+   - `https://your-project-name.vercel.app/api/auth/google/callback`
+
+   *Note: If you have a custom domain, add that too.*
+
+4. Configure Vercel Environment Variables
+-----------------------------------------
+Go to your Vercel Project Settings -> Environment Variables.
+Ensure you have:
+
+   Key                   Value
+   ---                   -----
+   GOOGLE_CLIENT_ID      (From Google Console)
+   GOOGLE_CLIENT_SECRET  (From Google Console)
+   BACKEND_URL           https://your-project-name.vercel.app/api
+   FRONTEND_URL          https://your-project-name.vercel.app
+
+   *Note: BACKEND_URL must include `/api` at the end.*
+
+5. Redeploy
+-----------
+You need to redeploy for the Vercel Environment Variables to take effect (or just hit "Redeploy" on the dashboard).
+
+6. Verify
+---------
+- Go to your site.
+- Click "Sign in with Google".
+- It should redirect to Google, then back to your site, and log you in.
