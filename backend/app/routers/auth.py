@@ -130,13 +130,20 @@ from starlette.requests import Request
 
 @router.get("/google/login")
 async def login_google(request: Request):
-    # Clear session to prevent cookie bloat (4KB limit)
-    request.session.clear()
-    
-    # DYNAMIC: Use environment variables with local fallbacks
-    backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
-    GOOGLE_REDIRECT_URI = f"{backend_url}/auth/google/callback"
-    return await oauth.google.authorize_redirect(request, GOOGLE_REDIRECT_URI)
+    try:
+        # Clear session to prevent cookie bloat (4KB limit)
+        request.session.clear()
+        
+        # DYNAMIC: Use environment variables with local fallbacks
+        backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+        GOOGLE_REDIRECT_URI = f"{backend_url}/auth/google/callback"
+        print(f"DEBUG: Redirecting to Google with URI: {GOOGLE_REDIRECT_URI}")
+        return await oauth.google.authorize_redirect(request, GOOGLE_REDIRECT_URI)
+    except Exception as e:
+        print(f"GOOGLE LOGIN ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"error": str(e), "traceable": traceback.format_exc()}
 
 @router.get("/google/callback")
 async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
