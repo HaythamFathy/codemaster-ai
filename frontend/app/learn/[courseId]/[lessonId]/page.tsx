@@ -41,6 +41,8 @@ export default function LessonPage() {
     const [output, setOutput] = useState<{ passed: boolean; feedback: string; stdout?: string; stderr?: string } | null>(null);
     const [isRunning, setIsRunning] = useState(false);
 
+    const [taskError, setTaskError] = useState(false);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -66,9 +68,18 @@ export default function LessonPage() {
                         const taskRes = await getLessonTask(params.lessonId as string);
                         setTask(taskRes.data);
                         setCode(taskRes.data.initial_code || "# Write your code here\n");
-                    } catch (e) {
+                        setTaskError(false);
+                    } catch (e: any) {
                         console.error("Failed to fetch task", e);
                         setCode("# Write your code here\n"); // Fallback
+                        // Check for 401 Unauthorized
+                        if (e.response && e.response.status === 401) {
+                            setTaskError(true);
+                        } else {
+                            // Only set error if critical, or maybe fallback to offline mode?
+                            // For now, let's show the error to prompt login.
+                            setTaskError(true);
+                        }
                     }
                 }
             } catch (err) {
@@ -184,8 +195,25 @@ export default function LessonPage() {
                                         <h3 className="text-lg font-semibold text-blue-700">{task.title}</h3>
                                         <div className="text-gray-700 whitespace-pre-wrap">{task.description}</div>
                                     </>
+                                ) : taskError ? (
+                                    <div className="p-4 rounded-md bg-red-50 border border-red-200">
+                                        <h3 className="text-red-800 font-semibold flex items-center gap-2">
+                                            <AlertCircle className="h-4 w-4" /> Session Expired
+                                        </h3>
+                                        <p className="text-sm text-red-600 mt-1">Please log in again to load your unique challenge.</p>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="mt-3 w-full border-red-200 text-red-700 hover:bg-red-100"
+                                            onClick={() => window.location.href = '/login'}
+                                        >
+                                            Log In
+                                        </Button>
+                                    </div>
                                 ) : (
-                                    <p className="text-gray-600">Loading your unique challenge...</p>
+                                    <p className="text-gray-600 flex items-center gap-2">
+                                        <Loader2 className="h-4 w-4 animate-spin" /> Loading your unique challenge...
+                                    </p>
                                 )}
 
                                 {lesson?.ai_prompt && (

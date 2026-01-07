@@ -8,10 +8,11 @@ import os
 
 router = APIRouter()
 
-from .auth import get_current_user
+from .auth import get_current_user, get_optional_current_user
+from typing import Optional
 
 @router.post("/submit_code", response_model=schemas.Submission)
-def submit_code(submission: schemas.SubmissionCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+def submit_code(submission: schemas.SubmissionCreate, db: Session = Depends(get_db), current_user: Optional[models.User] = Depends(get_optional_current_user)): 
     """
     Executes student code using the secure Docker executor.
     """
@@ -83,11 +84,12 @@ def submit_code(submission: schemas.SubmissionCreate, db: Session = Depends(get_
         executor_result["exit_code"] = -1
 
     # 3. Analyze Result
-    # Fetch proper test cases from the UserTask if available
-    user_task = db.query(models.UserTask).filter(
-        models.UserTask.user_id == current_user.id,
-        models.UserTask.lesson_id == submission.lesson_id
-    ).first()
+    user_task = None
+    if current_user:
+        user_task = db.query(models.UserTask).filter(
+            models.UserTask.user_id == current_user.id,
+            models.UserTask.lesson_id == submission.lesson_id
+        ).first()
 
     passed = False
     feedback = "Unknown Error"
@@ -128,36 +130,40 @@ def submit_code(submission: schemas.SubmissionCreate, db: Session = Depends(get_
 
     
     # 4. Save to DB
-    # Start assuming user_id=1 for MVP
-    user_id = 1
+    # Start assuming user_id=1 for MVP if guest
+    user_id = current_user.id if current_user else 1
     
     # GAMIFICATION LOGIC
-    if passed:
+    if passed and current_user:
         from datetime import datetime, timedelta
-        user = db.query(models.User).filter(models.User.id == user_id).first()
-        if user:
-            # 1. Award XP
-            user.xp_points += 50
-            
-            # 2. Update Streak
-            now = datetime.utcnow()
-            today = now.date()
-            
-            if user.last_active_date:
-                last_active = user.last_active_date.date()
-                if last_active == today - timedelta(days=1):
-                    # Continue streak
-                    user.current_streak += 1
-                elif last_active < today - timedelta(days=1):
-                    # Broke streak
-                    user.current_streak = 1
-                # If last_active == today, do nothing
-            else:
-                # First time active
+        # user is already current_user, no need to query if we trust the object attached to session
+        # But for write safety we can query or just update the object.
+        # current_user is attached to session if using ORM mode? Yes.
+        
+        user = current_user
+        
+        # 1. Award XP
+        user.xp_points += 50
+        
+        # 2. Update Streak
+        now = datetime.utcnow()
+        today = now.date()
+        
+        if user.last_active_date:
+            last_active = user.last_active_date.date()
+            if last_active == today - timedelta(days=1):
+                # Continue streak
+                user.current_streak += 1
+            elif last_active < today - timedelta(days=1):
+                # Broke streak
                 user.current_streak = 1
-                
-            user.last_active_date = now
-            # User will be committed along with submission
+            # If last_active == today, do nothing
+        else:
+            # First time active
+            user.current_streak = 1
+            
+        user.last_active_date = now
+        db.add(user) # Ensure update is tracked
 
     db_submission = models.Submission(
         user_id=user_id, 

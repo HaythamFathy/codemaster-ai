@@ -4,7 +4,11 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 # Default to SQLite for local development ease if Postgres is not set
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./codemaster.db")
+# DYNAMIC: Use absolute path to avoid confusion between running from root vs backend
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# app/../codemaster.db -> backend/codemaster.db
+DB_PATH = os.path.join(os.path.dirname(BASE_DIR), "codemaster.db")
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DB_PATH}")
 
 # Render/Heroku fix: SQLAlchemy needs postgresql:// but they offer postgres://
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):

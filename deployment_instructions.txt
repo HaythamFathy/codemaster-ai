@@ -1,0 +1,54 @@
+DEPLOYMENT INSTRUCTIONS FOR VERCEL
+==================================
+
+1. Push to GitHub
+-----------------
+Commit all the changes I just made and push them to your GitHub repository.
+   
+   git add .
+   git commit -m "Configure for Vercel deployment"
+   git push origin main
+
+2. Import Project in Vercel
+---------------------------
+- Go to https://vercel.com/new
+- Select your repository (online-edu config).
+- Vercel should automatically detect "Next.js".
+
+3. Configure Project
+--------------------
+- **Framework Preset**: Next.js (default)
+- **Root Directory**: ./ (default)
+- **Build Command**: npm run build (default)
+- **Output Directory**: .next (default)
+- **Install Command**: npm install (default)
+
+4. Environment Variables
+------------------------
+Add the following Environment Variables in the Vercel deployment screen:
+
+   Key                          Value
+   ---                          -----
+   SECRET_KEY                   <generate_a_random_secret_string>
+   ALGORITHM                    HS256
+   ACCESS_TOKEN_EXPIRE_MINUTES  30
+   ALLOWED_ORIGINS              https://your-vercel-project-name.vercel.app,http://localhost:3000
+
+   *Note: For the Database, this deployment uses SQLite ('codemaster.db').
+    On Vercel, this database will be effectively read-only/reset on every deployment.
+    For persistent data, you MUST connect a cloud database (like Vercel Postgres or Supabase).*
+
+5. specific Backend Config (If needed)
+--------------------------------------
+The `vercel.json` file I created automatically routes `/api/*` requests to `backend/api/index.py`.
+The `backend/requirements.txt` file is used by Vercel to install Python dependencies.
+
+6. Deploy
+---------
+Click "Deploy". Vercel will build the frontend and set up the serverless functions for the backend.
+
+7. Verify
+---------
+- Open the deployed URL.
+- Test the Login (it might fail if DB is not writable/present, but the API should respond).
+- Go to `/api/health` to confirm the backend is running.
