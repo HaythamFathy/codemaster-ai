@@ -29,8 +29,8 @@ def rebuild():
     columns = [col['name'] for col in inspector.get_columns('users')]
     print(f"User columns: {columns}")
     
-    if 'xp_points' not in columns:
-        print("CRITICAL: xp_points column MISSING!")
+    if 'full_name' not in columns:
+        print("CRITICAL: full_name column MISSING!")
         return
     else:
         print("Schema verification passed.")

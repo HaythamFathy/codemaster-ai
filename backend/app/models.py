@@ -1,9 +1,9 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Enum, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Enum, DateTime, Text, Identity
 from sqlalchemy.orm import relationship
+from sqlalchemy import JSON
+from sqlalchemy.sql import func
 from .database import Base
 import enum
-
-from datetime import datetime
 
 class UserRole(str, enum.Enum):
     STUDENT = "student"
@@ -12,64 +12,68 @@ class UserRole(str, enum.Enum):
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    email = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
-    role = Column(String, default=UserRole.STUDENT)
-    xp_points = Column(Integer, default=0)
+    id = Column(Integer, Identity(), primary_key=True)
+    email = Column(Text, unique=True, nullable=False)
+    hashed_password = Column(Text, nullable=True)
+    full_name = Column(Text, nullable=True)
+    avatar_url = Column(Text, nullable=True)
+    role = Column(Enum(UserRole), default=UserRole.STUDENT)
+    is_active = Column(Boolean, default=True)
+    google_sub = Column(Text, unique=True, nullable=True)
     current_streak = Column(Integer, default=0)
-    last_active_date = Column(DateTime, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    submissions = relationship("Submission", back_populates="user")
+    submissions = relationship("Submission", back_populates="user", cascade="all, delete-orphan")
 
 class Course(Base):
     __tablename__ = "courses"
 
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, index=True)
-    description = Column(String, nullable=True) # Added description
-    difficulty = Column(String)
-    image_url = Column(String, nullable=True) # Added image_url
-    
-    lessons = relationship("Lesson", back_populates="course")
+    id = Column(Integer, Identity(), primary_key=True)
+    title = Column(Text, nullable=False)
+    description = Column(Text, nullable=True)
+    slug = Column(Text, unique=True, nullable=False)
+    thumbnail_url = Column(Text, nullable=True)
+    is_published = Column(Boolean, default=False)
+
+    lessons = relationship("Lesson", back_populates="course", cascade="all, delete-orphan")
 
 class Lesson(Base):
     __tablename__ = "lessons"
 
-    id = Column(Integer, primary_key=True, index=True)
-    course_id = Column(Integer, ForeignKey("courses.id"))
-    title = Column(String, index=True)
-    video_url = Column(String)
-    content = Column(String, nullable=True) # Text content for the lesson
-    ai_prompt = Column(String, nullable=True)
-    quiz_data = Column(String, nullable=True) # JSON string for quiz questions
+    id = Column(Integer, Identity(), primary_key=True)
+    course_id = Column(Integer, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
+    title = Column(Text, nullable=False)
+    video_url = Column(Text, nullable=True)
+    content = Column(Text, nullable=True)
+    order_index = Column(Integer, nullable=False)
 
     course = relationship("Course", back_populates="lessons")
+    challenge = relationship("Challenge", uselist=False, back_populates="lesson", cascade="all, delete-orphan")
+
+class Challenge(Base):
+    __tablename__ = "challenges"
+
+    id = Column(Integer, Identity(), primary_key=True)
+    lesson_id = Column(Integer, ForeignKey("lessons.id", ondelete="CASCADE"), unique=True, nullable=False)
+    slug = Column(Text, unique=True, nullable=False)
+    problem_statement = Column(Text, nullable=False)
+    starter_code = Column(Text, nullable=True)
+    test_cases = Column(JSON, nullable=True) # Format: [{"input": "...", "expected_output": "..."}]
+
+    lesson = relationship("Lesson", back_populates="challenge")
+    submissions = relationship("Submission", back_populates="challenge", cascade="all, delete-orphan")
 
 class Submission(Base):
     __tablename__ = "submissions"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    code_content = Column(String)
-    passed_boolean = Column(Boolean, default=False)
-    ai_feedback = Column(String, nullable=True)
-    # New fields for execution output
-    stdout = Column(String, nullable=True)
-    stderr = Column(String, nullable=True)
-    exit_code = Column(Integer, nullable=True)
+    id = Column(Integer, Identity(), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    challenge_id = Column(Integer, ForeignKey("challenges.id", ondelete="CASCADE"), nullable=False)
+    code_submitted = Column(Text, nullable=False)
+    status = Column(Text, nullable=False) # 'Passed', 'Failed', 'Error'
+    passed_test_cases = Column(Integer, default=0)
+    total_test_cases = Column(Integer, default=0)
+    submitted_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="submissions")
-
-class UserTask(Base):
-    __tablename__ = "user_tasks"
-
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    lesson_id = Column(Integer, ForeignKey("lessons.id"))
-    task_json = Column(String) # Stores the JSON blob from AI
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-    user = relationship("User")
-    lesson = relationship("Lesson")
+    challenge = relationship("Challenge", back_populates="submissions")

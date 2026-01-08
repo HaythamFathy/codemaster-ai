@@ -73,11 +73,11 @@ def get_current_admin(current_user: models.User = Depends(get_current_user)):
 def read_users_me(current_user: models.User = Depends(get_current_user)):
     return {
         "id": current_user.id,
-        "name": current_user.name,
+        "full_name": current_user.full_name,
         "email": current_user.email,
-        "role": current_user.role,
-        "xp_points": current_user.xp_points,
-        "current_streak": current_user.current_streak
+        "role": current_user.role.value if hasattr(current_user.role, 'value') else current_user.role,
+        "current_streak": current_user.current_streak,
+        "avatar_url": current_user.avatar_url
     }
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -107,7 +107,7 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     hashed_password = get_password_hash(user.password)
     new_user = models.User(
         email=user.email,
-        name=user.name,
+        full_name=user.full_name,
         hashed_password=hashed_password
     )
     db.add(new_user)
@@ -125,7 +125,9 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         if not db_user or not verify_password(user.password, db_user.hashed_password):
             raise HTTPException(status_code=400, detail="Incorrect email or password")
         
-        access_token = create_access_token(data={"sub": db_user.email, "role": db_user.role})
+        # Handle Enum or String role
+        role_str = db_user.role.value if hasattr(db_user.role, 'value') else db_user.role
+        access_token = create_access_token(data={"sub": db_user.email, "role": role_str})
         return {"access_token": access_token, "token_type": "bearer"}
     except Exception as e:
         print(f"LOGIN ERROR: {e}")
@@ -170,6 +172,8 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
              
         email = user_info.get("email")
         name = user_info.get("name")
+        picture = user_info.get("picture")
+        sub = user_info.get("sub")
         
         # Check if user exists
         db_user = db.query(models.User).filter(models.User.email == email).first()
@@ -178,18 +182,20 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
             hashed_password = get_password_hash("GOOGLE_AUTH_PLACEHOLDER")
             db_user = models.User(
                 email=email,
-                name=name,
+                full_name=name,
                 hashed_password=hashed_password,
-                xp_points=0,
+                avatar_url=picture,
+                google_sub=sub,
                 current_streak=0,
-                role="student" 
+                role=models.UserRole.STUDENT
             )
             db.add(db_user)
             db.commit()
             db.refresh(db_user)
             
         # Create JWT
-        access_token = create_access_token(data={"sub": email, "role": db_user.role})
+        role_str = db_user.role.value if hasattr(db_user.role, 'value') else db_user.role
+        access_token = create_access_token(data={"sub": email, "role": role_str})
         
         # DYNAMIC: Use environment variable for frontend redirect
         frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")

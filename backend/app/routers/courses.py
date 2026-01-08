@@ -53,29 +53,4 @@ def delete_course(course_id: int, db: Session = Depends(get_db), current_user: m
     db.commit()
     return {"message": "Course deleted successfully"}
 
-@router.post("/{course_id}/complete_quiz")
-def complete_quiz(course_id: int, submission: schemas.QuizSubmission, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    # 1. Award XP
-    xp_gained = submission.score
-    current_user.xp_points += xp_gained
-    
-    # 2. Update Streak (Simplified logic: if active yesterday, increment. If active today, do nothing. If gap, reset.)
-    now = datetime.utcnow()
-    today = now.date()
-    
-    if current_user.last_active_date:
-        last_active = current_user.last_active_date.date()
-        if last_active == today - timedelta(days=1):
-            current_user.current_streak += 1
-        elif last_active < today - timedelta(days=1):
-            current_user.current_streak = 1
-         # If today, keep streak
-    else:
-        current_user.current_streak = 1
-        
-    current_user.last_active_date = now
-    
-    db.commit()
-    db.refresh(current_user)
-    
-    return {"message": "Quiz completed", "xp_earned": xp_gained, "total_xp": current_user.xp_points, "streak": current_user.current_streak}
+
