@@ -8,6 +8,14 @@ from jose import JWTError, jwt
 from typing import Optional
 from datetime import datetime, timedelta
 import os
+import bcrypt
+
+# Monkeypatch bcrypt for passlib compatibility
+if not hasattr(bcrypt, "__about__"):
+    class BcryptAbout:
+        def __init__(self):
+            self.__version__ = getattr(bcrypt, "__version__", "4.0.0")
+    bcrypt.__about__ = BcryptAbout()
 
 router = APIRouter()
 
