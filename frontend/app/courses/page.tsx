@@ -110,6 +110,14 @@ export default function CoursesPage() {
                                             <BookOpen className="h-4 w-4 mr-1" />
                                             {course.lessons?.length || 0} Lessons
                                         </span>
+                                        {course.course_type && (
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize
+                                                ${course.course_type === 'one_on_one' ? 'bg-purple-100 text-purple-700' :
+                                                    course.course_type === 'group' ? 'bg-orange-100 text-orange-700' :
+                                                        'bg-blue-100 text-blue-700'}`}>
+                                                {course.course_type.replace('_', ' ')}
+                                            </span>
+                                        )}
                                     </div>
 
                                     <Button

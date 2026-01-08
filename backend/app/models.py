@@ -8,6 +8,8 @@ import enum
 class UserRole(str, enum.Enum):
     STUDENT = "student"
     ADMIN = "admin"
+    INSTRUCTOR = "instructor"
+    SUPPORT = "support"
 
 class User(Base):
     __tablename__ = "users"
@@ -24,6 +26,12 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     submissions = relationship("Submission", back_populates="user", cascade="all, delete-orphan")
+    courses_teaching = relationship("Course", back_populates="instructor")
+
+class CourseType(str, enum.Enum):
+    ONE_ON_ONE = "one_on_one"
+    GROUP = "group"
+    PRE_RECORDED = "pre_recorded"
 
 class Course(Base):
     __tablename__ = "courses"
@@ -34,7 +42,10 @@ class Course(Base):
     slug = Column(Text, unique=True, nullable=False)
     thumbnail_url = Column(Text, nullable=True)
     is_published = Column(Boolean, default=False)
+    instructor_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    course_type = Column(Enum(CourseType), default=CourseType.PRE_RECORDED)
 
+    instructor = relationship("User", back_populates="courses_teaching")
     lessons = relationship("Lesson", back_populates="course", cascade="all, delete-orphan")
 
 class Lesson(Base):

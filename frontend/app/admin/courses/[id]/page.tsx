@@ -16,8 +16,9 @@ export default function EditCoursePage({ params }: { params: Promise<{ id: strin
     const [formData, setFormData] = useState({
         title: "",
         description: "",
-        difficulty: "Beginner",
-        image_url: ""
+        thumbnail_url: "",
+        course_type: "",
+        slug: ""
     });
 
     useEffect(() => {
@@ -27,8 +28,9 @@ export default function EditCoursePage({ params }: { params: Promise<{ id: strin
                 setFormData({
                     title: res.data.title,
                     description: res.data.description || "",
-                    difficulty: res.data.difficulty,
-                    image_url: res.data.image_url || ""
+                    thumbnail_url: res.data.thumbnail_url || "",
+                    course_type: res.data.course_type || "pre_recorded",
+                    slug: res.data.slug
                 });
             } catch (error) {
                 console.error("Failed to fetch course", error);
@@ -89,29 +91,41 @@ export default function EditCoursePage({ params }: { params: Promise<{ id: strin
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Difficulty</label>
+                    <label className="block text-sm font-medium text-gray-700">Course Type</label>
                     <select
-                        name="difficulty"
+                        name="course_type"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
-                        value={formData.difficulty}
+                        value={formData.course_type}
                         onChange={handleChange}
                     >
-                        <option value="Beginner">Beginner</option>
-                        <option value="Intermediate">Intermediate</option>
-                        <option value="Advanced">Advanced</option>
+                        <option value="pre_recorded">Pre-recorded</option>
+                        <option value="one_on_one">One-on-One</option>
+                        <option value="group">Group</option>
                     </select>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Image URL</label>
+                    <label className="block text-sm font-medium text-gray-700">Thumbnail URL</label>
                     <input
                         type="url"
-                        name="image_url"
+                        name="thumbnail_url"
                         placeholder="https://example.com/image.jpg"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
-                        value={formData.image_url}
+                        value={formData.thumbnail_url}
                         onChange={handleChange}
                     />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Slug (URL Path)</label>
+                    <input
+                        type="text"
+                        name="slug"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border bg-gray-50"
+                        value={formData.slug}
+                        readOnly={true}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Slug cannot be changed after creation.</p>
                 </div>
 
                 <div className="flex justify-end gap-4">

@@ -79,18 +79,22 @@ class CourseBase(BaseModel):
     slug: str
     thumbnail_url: Optional[str] = None
     is_published: bool = False
+    course_type: str = "pre_recorded"
 
 class CourseCreate(CourseBase):
-    pass
+    instructor_id: Optional[int] = None
 
 class CourseUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     thumbnail_url: Optional[str] = None
     is_published: Optional[bool] = None
+    instructor_id: Optional[int] = None
+    course_type: Optional[str] = None
 
 class Course(CourseBase):
     id: int
+    instructor_id: Optional[int] = None
     lessons: List[Lesson] = []
     
     class Config:

@@ -209,3 +209,48 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
         traceback.print_exc()
         # RETURN THE REAL ERROR TO THE USER FOR DEBUGGING
         raise HTTPException(status_code=400, detail=f"Google Authentication Failed: {str(e)}")
+
+# --- Role Management ---
+
+class UserRoleUpdate(schemas.BaseModel):
+    role: models.UserRole
+
+@router.put("/users/{user_id}/role", response_model=schemas.User)
+def update_user_role(
+    user_id: int, 
+    role_update: UserRoleUpdate, 
+    db: Session = Depends(get_db), 
+    current_admin: models.User = Depends(get_current_admin)
+):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Prevent self-demotion if not careful, but allowing it for now
+    user.role = role_update.role
+    db.commit()
+    db.refresh(user)
+    return user
+
+# --- Impersonation (Support/Admin) ---
+
+@router.post("/impersonate/{user_id}", response_model=schemas.Token)
+def impersonate_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    # Only Admin or Support can impersonate
+    if current_user.role not in [models.UserRole.ADMIN, models.UserRole.SUPPORT]:
+        raise HTTPException(status_code=403, detail="Insufficient privileges")
+
+    target_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not target_user:
+        raise HTTPException(status_code=404, detail="Target user not found")
+
+    # Create token for target user
+    # Note: We might want to add a claim 'impersonator_id': current_user.id for audit logs
+    role_str = target_user.role.value if hasattr(target_user.role, 'value') else target_user.role
+    access_token = create_access_token(data={"sub": target_user.email, "role": role_str})
+    
+    return {"access_token": access_token, "token_type": "bearer"}

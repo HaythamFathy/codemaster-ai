@@ -14,6 +14,10 @@ def get_current_admin_user(current_user: models.User = Depends(get_current_user)
         )
     return current_user
 
+@router.get("/users")
+def get_all_users(db: Session = Depends(get_db), admin: models.User = Depends(get_current_admin_user)):
+    return db.query(models.User).order_by(models.User.id.desc()).all()
+
 @router.get("/stats")
 def get_admin_stats(db: Session = Depends(get_db), admin: models.User = Depends(get_current_admin_user)):
     user_count = db.query(models.User).count()

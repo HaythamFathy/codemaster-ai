@@ -37,7 +37,15 @@ function AuthForm() {
                 const token = response.data.access_token;
                 localStorage.setItem("token", token);
                 document.cookie = `token=${token}; path=/; max-age=604800; SameSite=Lax`;
-                window.location.href = "/dashboard";
+
+                // RBAC Redirect Logic
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const role = payload.role;
+
+                if (role === "admin") router.push("/admin");
+                else if (role === "instructor") router.push("/instructor");
+                else if (role === "support") router.push("/support");
+                else router.push("/dashboard");
             } else {
                 await api.post("/auth/register", { name, email, password });
                 // Switch to login mode after successful register, or auto-login

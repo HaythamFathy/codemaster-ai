@@ -113,7 +113,17 @@ export default function DashboardPage() {
                                         )}
                                     </div>
                                     <div className="p-5 flex-1 flex flex-col">
-                                        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1">{course.title}</h3>
+                                        <div className="flex justify-between items-start mb-2">
+                                            <h3 className="text-lg font-bold text-gray-900 line-clamp-1 flex-1 mr-2">{course.title}</h3>
+                                            {course.course_type && (
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
+                                                    ${course.course_type === 'one_on_one' ? 'bg-purple-100 text-purple-700' :
+                                                        course.course_type === 'group' ? 'bg-orange-100 text-orange-700' :
+                                                            'bg-gray-100 text-gray-600'}`}>
+                                                    {course.course_type.replace('_', ' ')}
+                                                </span>
+                                            )}
+                                        </div>
                                         <p className="text-sm text-gray-500 mb-4 flex-1 line-clamp-2">{course.description}</p>
 
                                         <div className="mt-auto">

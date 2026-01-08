@@ -24,6 +24,9 @@ app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 from .routers import tasks
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
 
+from .routers import instructor
+app.include_router(instructor.router, prefix="/api/instructor", tags=["instructor"])
+
 import os
 
 # CORS Configuration
