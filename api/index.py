@@ -1,4 +1,10 @@
-from backend.app.main import app
+from fastapi import FastAPI
+app = FastAPI()
 
-# This is the entry point for Vercel
-# It exposes the FastAPI app as a serverless function
+@app.get("/api/hello")
+def hello():
+    return {"message": "Hello from standalone index.py"}
+
+@app.get("/api/debug")
+def debug():
+    return {"message": "Debug from standalone"}
