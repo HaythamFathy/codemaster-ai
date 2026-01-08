@@ -24,7 +24,7 @@ export default function NewCoursePage() {
         e.preventDefault();
         setLoading(true);
         try {
-            await api.post("/courses/", formData);
+            await api.post("/courses", formData);
             router.push("/admin/courses");
         } catch (error) {
             console.error(error);

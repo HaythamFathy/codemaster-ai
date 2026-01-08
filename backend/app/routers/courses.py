@@ -6,7 +6,7 @@ from typing import List
 
 router = APIRouter()
 
-@router.get("/", response_model=List[schemas.Course])
+@router.get("", response_model=List[schemas.Course])
 def get_courses(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     courses = db.query(models.Course).offset(skip).limit(limit).all()
     return courses
@@ -21,7 +21,7 @@ def get_course(course_id: int, db: Session = Depends(get_db)):
 from .auth import get_current_user, get_current_admin # Import admin dependency
 from datetime import datetime, timedelta
 
-@router.post("/", response_model=schemas.Course)
+@router.post("", response_model=schemas.Course)
 def create_course(course: schemas.CourseCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_admin)):
     db_course = models.Course(**course.dict())
     db.add(db_course)
