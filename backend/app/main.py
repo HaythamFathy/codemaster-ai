@@ -9,8 +9,8 @@ from .routers import auth, courses, submissions, ai
 # Create tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="CodeMaster AI API")
-
+app = FastAPI(title="CodeMaster AI API", root_path="/api")
+    
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(courses.router, prefix="/courses", tags=["courses"])
 from .routers import lessons # Import lessons router
