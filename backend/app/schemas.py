@@ -61,7 +61,7 @@ class Course(CourseBase):
     id: int
     lessons: List[Lesson] = []
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class SubmissionBase(BaseModel):
     code_content: str
@@ -82,4 +82,4 @@ class Submission(SubmissionBase):
     exit_code: Optional[int] = None
     
     class Config:
-        orm_mode = True
+        from_attributes = True
