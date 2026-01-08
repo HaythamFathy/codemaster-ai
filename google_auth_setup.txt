@@ -17,11 +17,11 @@ You must add your Vercel URLs here.
 
 A) **Authorized JavaScript Origins**
    Add your Vercel production URL:
-   - `https://your-project-name.vercel.app`
+   - `https://codemaster-ai.vercel.app`
 
 B) **Authorized Redirect URIs**
    Add the callback URL. **Critical:** Use the `/api` prefix because the backend handles this.
-   - `https://your-project-name.vercel.app/api/auth/google/callback`
+   - `https://codemaster-ai.vercel.app/api/auth/google/callback`
 
    *Note: If you have a custom domain, add that too.*
 
@@ -34,8 +34,8 @@ Ensure you have:
    ---                   -----
    GOOGLE_CLIENT_ID      (From Google Console)
    GOOGLE_CLIENT_SECRET  (From Google Console)
-   BACKEND_URL           https://your-project-name.vercel.app/api
-   FRONTEND_URL          https://your-project-name.vercel.app
+   BACKEND_URL           https://codemaster-ai.vercel.app/api
+   FRONTEND_URL          https://codemaster-ai.vercel.app
 
    *Note: BACKEND_URL must include `/api` at the end.*
 

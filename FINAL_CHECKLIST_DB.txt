@@ -1,0 +1,23 @@
+FINAL DATABASE FIX CHECKLIST
+============================
+
+The error is still happening because Vercel is trying to connect to a bad URL.
+
+Please confirm you have done these 3 things:
+
+1. [ ] RESET PASSWORD
+   - Did you change your Supabase database password to something SIMPLE (e.g. `Haytham12345`)?
+   - No `@`, no `$`, no `!`, no brackets `[]`.
+
+2. [ ] GET "TRANSACTION POOLER" URL
+   - In Supabase, click "Connect" -> "Transaction Pooler".
+   - Copy that string.
+   - It usually looks like: `...pooler.supabase.com:6543...`
+
+3. [ ] UPDATE VERCEL
+   - Go to Vercel -> Settings -> Environment Variables.
+   - **Delete** the old `DATABASE_URL`.
+   - **Add** the new one with your new simple password.
+   - **Redeploy** (Deployments -> Redeploy).
+
+If you don't do step 3, Vercel will keep using the old broken URL forever!
