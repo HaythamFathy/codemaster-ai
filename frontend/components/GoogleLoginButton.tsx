@@ -6,7 +6,15 @@ export default function GoogleLoginButton() {
             type="button"
             variant="outline"
             className="w-full flex items-center gap-2"
-            onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8000')}/auth/google/login`}
+            onClick={() => {
+                // FORCE production URL to avoid Vercel Preview domain mismatch
+                // Google OAuth is STRICTLY configured for codemaster-ai.vercel.app
+                const baseUrl = process.env.NODE_ENV === 'production'
+                    ? "https://codemaster-ai.vercel.app"
+                    : "http://localhost:8000";
+
+                window.location.href = `${baseUrl}/api/auth/google/login`;
+            }}
         >
             <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true" fill="currentColor">
                 <path d="M12.0003 20.45c-2.2272 0-4.2984-.7176-5.9604-1.9284l-2.484 1.9332C6.1824 22.8648 8.9412 24 12.0003 24c3.4836 0 6.6432-1.2852 8.9808-3.4116l-2.73-2.1156c-1.638 1.1004-3.738 1.9776-6.2511 1.9776-4.6656 0-8.6796-3.0576-10.1232-7.2912l-2.5836 1.9968C1.8435 19.3476 6.5511 20.45 12.0003 20.45z" fill="#34A853" />
