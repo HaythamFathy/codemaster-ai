@@ -63,10 +63,13 @@ async def health_check():
     return {"status": "healthy"}
 
 @app.get("/api/debug")
-async def debug_request(request: Request):
-    return {
-        "url": str(request.url),
-        "path": request.url.path,
-        "root_path": request.scope.get("root_path"),
-        "method": request.method
-    }
+async def debug_api(request: Request):
+    return {"message": "I matched /api/debug", "path": request.url.path}
+
+@app.get("/debug")
+async def debug_root(request: Request):
+    return {"message": "I matched /debug", "path": request.url.path}
+
+@app.get("/")
+async def root_debug(request: Request):
+    return {"message": "I matched root /", "path": request.url.path}
