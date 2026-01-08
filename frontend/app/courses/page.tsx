@@ -6,11 +6,19 @@ import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Video, Code2 } from "lucide-react";
 
+interface Lesson {
+    id: number;
+    title: string;
+    order_index: number;
+}
+
 interface Course {
     id: number;
     title: string;
-    video_url: string;
-    difficulty: string;
+    description: string;
+    thumbnail_url: string;
+    slug: string;
+    lessons: Lesson[];
 }
 
 export default function CoursesPage() {
@@ -22,6 +30,7 @@ export default function CoursesPage() {
         const fetchCourses = async () => {
             try {
                 const response = await api.get("/courses/");
+                console.log("Courses:", response.data);
                 setCourses(response.data);
             } catch (error) {
                 console.error("Failed to fetch courses", error);
@@ -33,17 +42,22 @@ export default function CoursesPage() {
         fetchCourses();
     }, []);
 
-    const handleStartLesson = (courseId: number) => {
-        // For MVP, we route to a generic lesson ID "1" for all courses 
-        // until we have a real Lesson model. 
-        // In the future this would be /learn/[courseId]/[lessonId]
-        router.push(`/learn/${courseId}/1`);
+    const handleStartLesson = (course: Course) => {
+        if (course.lessons && course.lessons.length > 0) {
+            // Sort by order_index just in case
+            const firstLesson = course.lessons.sort((a, b) => a.order_index - b.order_index)[0];
+            router.push(`/learn/${course.id}/${firstLesson.id}`);
+        } else {
+            // Fallback if no lessons loaded (or empty course)
+            // Just go to the generic lesson 1 route and handle 404 there or specific course page
+            router.push(`/learn/${course.id}/1`);
+        }
     };
 
     if (loading) {
         return (
             <div className="flex h-screen items-center justify-center">
-                <div className="text-xl">Loading courses...</div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
         );
     }
@@ -56,40 +70,52 @@ export default function CoursesPage() {
                         Available Courses
                     </h1>
                     <p className="mt-4 text-xl text-gray-600">
-                        Master Python with our interactive, gamified lessons.
+                        Master coding with our interactive, gamified lessons.
                     </p>
                 </div>
 
                 <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
                     {!Array.isArray(courses) || courses.length === 0 ? (
-                        <div className="col-span-full text-center text-gray-500">No courses available.</div>
+                        <div className="col-span-full text-center text-gray-500 py-12 bg-white rounded-lg shadow">
+                            <BookOpen className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                            <p className="text-lg">No courses available yet.</p>
+                        </div>
                     ) : (
-                        courses.map((course: any) => (
-                            <div key={course.id} className="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-300 flex flex-col">
-                                {course.image_url && (
-                                    <div className="h-48 w-full relative">
-                                        <img src={course.image_url} alt={course.title} className="w-full h-full object-cover" />
-                                    </div>
-                                )}
-                                <div className="p-6 flex-1">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide 
-                                        ${course.difficulty === 'Beginner' ? 'bg-green-100 text-green-800' :
-                                                course.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-red-100 text-red-800'}`}>
-                                            {course.difficulty}
-                                        </span>
-                                        <Video className="h-5 w-5 text-gray-400" />
-                                    </div>
-                                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        courses.map((course) => (
+                            <div key={course.id} className="bg-white overflow-hidden shadow-sm rounded-xl hover:shadow-md transition-shadow duration-300 flex flex-col group">
+                                <div className="h-48 w-full relative overflow-hidden bg-gray-200">
+                                    {course.thumbnail_url ? (
+                                        <img
+                                            src={course.thumbnail_url}
+                                            alt={course.title}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        />
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full text-gray-400">
+                                            <Video className="h-12 w-12" />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="p-6 flex-1 flex flex-col">
+                                    <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-1">
                                         {course.title}
                                     </h3>
-                                    <p className="text-gray-500 text-sm">
-                                        Learn key concepts through video tutorials and interactive coding challenges.
+                                    <p className="text-gray-500 text-sm mb-4 flex-1 line-clamp-3">
+                                        {course.description || "No description available."}
                                     </p>
-                                </div>
-                                <div className="bg-gray-50 px-6 py-4 border-t">
-                                    <Button className="w-full flex items-center justify-center gap-2" onClick={() => handleStartLesson(course.id)}>
+
+                                    <div className="mt-4 flex items-center justify-between text-xs text-gray-500 mb-4">
+                                        <span className="flex items-center">
+                                            <BookOpen className="h-4 w-4 mr-1" />
+                                            {course.lessons?.length || 0} Lessons
+                                        </span>
+                                    </div>
+
+                                    <Button
+                                        className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                                        onClick={() => handleStartLesson(course)}
+                                    >
                                         <Code2 className="h-4 w-4" />
                                         Start Learning
                                     </Button>

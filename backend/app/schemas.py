@@ -101,7 +101,7 @@ class SubmissionBase(BaseModel):
     code_submitted: str
 
 class SubmissionCreate(SubmissionBase):
-    challenge_id: int
+    lesson_id: int
 
 class Submission(SubmissionBase):
     id: int

@@ -6,38 +6,53 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { Code2, LayoutDashboard, BookOpen, ShieldCheck } from "lucide-react";
+import api from "@/lib/api";
+
+interface UserProfile {
+    full_name: string;
+    avatar_url: string;
+    email: string;
+    role: string;
+}
 
 export function Navbar() {
     const router = useRouter();
     const pathname = usePathname();
     const [token, setToken] = useState<string | null>(null);
-    const [role, setRole] = useState<string | null>(null);
+    const [user, setUser] = useState<UserProfile | null>(null);
 
     // Check token and role on mount
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
         setToken(storedToken);
+
         if (storedToken) {
-            try {
-                const decoded: any = jwtDecode(storedToken);
-                setRole(decoded.role || null);
-            } catch (e) {
-                console.error("Invalid token", e);
-            }
+            // Fetch full profile
+            api.get("/auth/me")
+                .then((res) => {
+                    setUser(res.data);
+                })
+                .catch((err) => {
+                    console.error("Failed to fetch user", err);
+                    // Optionally logout if token is invalid
+                    // localStorage.removeItem("token"); 
+                });
         }
     }, []);
 
     const handleLogout = () => {
         localStorage.removeItem("token");
         setToken(null);
-        setRole(null);
+        setUser(null);
         router.push("/login");
     };
 
+    const role = user?.role || (token ? tryGetRole(token) : null);
+
     return (
-        <nav className="border-b bg-white">
+        <nav className="border-b bg-white z-50 relative">
             <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                <Link href="/" className="flex items-center gap-2 font-bold text-xl text-blue-600">
+                <Link href="/" className="flex items-center gap-2 font-bold text-xl text-blue-600 hover:opacity-80 transition-opacity">
                     <Code2 className="h-6 w-6" />
                     CodeMaster AI
                 </Link>
@@ -48,7 +63,7 @@ export function Navbar() {
                             {role === "admin" && (
                                 <Link
                                     href="/admin"
-                                    className={`flex items-center px-3 py-2 text-sm font-medium ${pathname.startsWith("/admin") ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
+                                    className={`flex items-center px-3 py-2 text-sm font-medium transition-colors ${pathname.startsWith("/admin") ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
                                         }`}
                                 >
                                     <ShieldCheck className="h-4 w-4 mr-2" />
@@ -57,7 +72,7 @@ export function Navbar() {
                             )}
                             <Link
                                 href="/courses"
-                                className={`flex items-center px-3 py-2 text-sm font-medium ${pathname === "/courses" ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
+                                className={`flex items-center px-3 py-2 text-sm font-medium transition-colors ${pathname === "/courses" ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
                                     }`}
                             >
                                 <BookOpen className="h-4 w-4 mr-2" />
@@ -65,25 +80,35 @@ export function Navbar() {
                             </Link>
                             <Link
                                 href="/dashboard"
-                                className={`flex items-center px-3 py-2 text-sm font-medium ${pathname === "/dashboard" ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
+                                className={`flex items-center px-3 py-2 text-sm font-medium transition-colors ${pathname === "/dashboard" ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
                                     }`}
                             >
                                 <LayoutDashboard className="h-4 w-4 mr-2" />
                                 Dashboard
                             </Link>
-                            <Link
-                                href="/profile"
-                                className={`flex items-center px-3 py-2 text-sm font-medium ${pathname === "/profile" ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
-                                    }`}
-                            >
-                                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-600 mr-2 text-xs font-bold">
-                                    U
-                                </span>
-                                Profile
-                            </Link>
-                            <Button variant="ghost" onClick={handleLogout}>
-                                Logout
-                            </Button>
+
+                            <div className="flex items-center gap-4 pl-4 border-l">
+                                <Link href="/profile" className="flex items-center gap-2 group">
+                                    {user?.avatar_url ? (
+                                        <img
+                                            src={user.avatar_url}
+                                            alt={user.full_name || "User"}
+                                            className="h-8 w-8 rounded-full border border-gray-200 group-hover:border-blue-400 transition-colors object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 text-sm font-bold group-hover:bg-blue-200 transition-colors">
+                                            {user?.full_name ? user.full_name[0].toUpperCase() : "U"}
+                                        </div>
+                                    )}
+                                    <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 hidden md:block">
+                                        {user?.full_name?.split(' ')[0] || "Profile"}
+                                    </span>
+                                </Link>
+
+                                <Button variant="ghost" size="sm" onClick={handleLogout} className="text-gray-500 hover:text-red-600">
+                                    Logout
+                                </Button>
+                            </div>
                         </>
                     ) : (
                         <>
@@ -102,4 +127,13 @@ export function Navbar() {
             </div>
         </nav>
     );
+}
+
+function tryGetRole(token: string) {
+    try {
+        const decoded: any = jwtDecode(token);
+        return decoded.role;
+    } catch {
+        return null;
+    }
 }
