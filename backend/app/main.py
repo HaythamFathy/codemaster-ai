@@ -9,20 +9,20 @@ from .routers import auth, courses, submissions, ai
 # Create tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="CodeMaster AI API", root_path="/api")
+app = FastAPI(title="CodeMaster AI API") # Removed root_path, doing explicit prefixes
     
-app.include_router(auth.router, prefix="/auth", tags=["auth"])
-app.include_router(courses.router, prefix="/courses", tags=["courses"])
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(courses.router, prefix="/api/courses", tags=["courses"])
 from .routers import lessons # Import lessons router
-app.include_router(lessons.router, prefix="/lessons", tags=["lessons"])
-app.include_router(submissions.router, prefix="/submissions", tags=["submissions"])
-app.include_router(ai.router, prefix="/api", tags=["ai"])
+app.include_router(lessons.router, prefix="/api/lessons", tags=["lessons"])
+app.include_router(submissions.router, prefix="/api/submissions", tags=["submissions"])
+app.include_router(ai.router, prefix="/api/ai", tags=["ai"]) # Changed /api to /api/ai for consistency if needed, or keep /api if it was base
 
 from .routers import admin
-app.include_router(admin.router, prefix="/admin", tags=["admin"])
+app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 
 from .routers import tasks
-app.include_router(tasks.router, prefix="/api", tags=["tasks"])
+app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
 
 import os
 
