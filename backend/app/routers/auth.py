@@ -185,4 +185,7 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
         
     except Exception as e:
         print(f"Google Auth Error: {e}")
-        raise HTTPException(status_code=400, detail="Google Authentication Failed")
+        import traceback
+        traceback.print_exc()
+        # RETURN THE REAL ERROR TO THE USER FOR DEBUGGING
+        raise HTTPException(status_code=400, detail=f"Google Authentication Failed: {str(e)}")
