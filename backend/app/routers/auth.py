@@ -161,6 +161,8 @@ async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
         # DEBUG: Print session keys to debug state mismatch
         print(f"DEBUG CALLBACK SESSION KEYS: {request.session.keys()}")
         print(f"DEBUG CALLBACK SESSION STATE: {request.session.get('state')}")
+        print(f"DEBUG HEADERS: {request.headers}")
+        print(f"DEBUG COOKIES: {request.cookies}")
         
         # 1. Exchange Access Token
         token = await oauth.google.authorize_access_token(request)
