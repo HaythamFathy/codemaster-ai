@@ -40,7 +40,7 @@ class Lesson(LessonBase):
     id: int
     course_id: int
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class CourseBase(BaseModel):
     title: str
