@@ -45,7 +45,7 @@ is_production = os.getenv("BACKEND_URL", "").startswith("https")
 app.add_middleware(
     SessionMiddleware, 
     secret_key=os.getenv("SECRET_KEY", "supersecretkey"), 
-    https_only=True, # Always force secure cookies if we think we might be in prod/ngrok
+    https_only=False, # Disable secure flag to avoid proxy issues on Vercel
     same_site="lax" # More robust for top-level navigation redirects like OAuth
 )
 
