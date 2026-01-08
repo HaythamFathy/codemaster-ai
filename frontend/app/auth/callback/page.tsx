@@ -16,7 +16,8 @@ function CallbackHandler() {
             // Force a small delay or event dispatch if navbar needs to listen to storage, 
             // but Navbar usually reads on mount. A hard refresh might be needed or Context. 
             // For now, simple push.
-            router.push("/dashboard");
+            // Force a hard refresh to update Navbar state
+            window.location.href = "/dashboard";
         } else {
             router.push("/login?error=oauth_failed");
         }

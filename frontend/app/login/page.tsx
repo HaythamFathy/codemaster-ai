@@ -37,7 +37,7 @@ function AuthForm() {
                 const token = response.data.access_token;
                 localStorage.setItem("token", token);
                 document.cookie = `token=${token}; path=/; max-age=604800; SameSite=Lax`;
-                router.push("/dashboard");
+                window.location.href = "/dashboard";
             } else {
                 await api.post("/auth/register", { name, email, password });
                 // Switch to login mode after successful register, or auto-login
