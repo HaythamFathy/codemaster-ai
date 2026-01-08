@@ -50,9 +50,9 @@ export function Navbar() {
     const role = user?.role || (token ? tryGetRole(token) : null);
 
     return (
-        <nav className="border-b bg-white z-50 relative">
+        <nav className="border-b border-gray-200 bg-white z-50 relative shadow-sm">
             <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                <Link href="/" className="flex items-center gap-2 font-bold text-xl text-blue-600 hover:opacity-80 transition-opacity">
+                <Link href="/" className="flex items-center gap-2 font-bold text-xl text-blue-700 hover:text-blue-800 transition-colors">
                     <Code2 className="h-6 w-6" />
                     CodeMaster AI
                 </Link>

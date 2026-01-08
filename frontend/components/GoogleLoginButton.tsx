@@ -5,7 +5,7 @@ export default function GoogleLoginButton() {
         <Button
             type="button"
             variant="outline"
-            className="w-full flex items-center gap-2"
+            className="w-full flex items-center justify-center gap-3 border-gray-300 text-gray-700 hover:bg-gray-50 font-medium"
             onClick={() => {
                 // FORCE production URL to avoid Vercel Preview domain mismatch
                 // Google OAuth is STRICTLY configured for codemaster-ai.vercel.app
