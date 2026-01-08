@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
-import { StatsCard } from "@/components/StatsCard";
 import { User, Mail, Shield, Trophy, Flame } from "lucide-react";
 
 interface UserProfile {
@@ -70,18 +69,24 @@ export default function ProfilePage() {
 
                 {/* Stats Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <StatsCard
-                        title="Total XP"
-                        value={user.xp_points}
-                        icon={<Trophy className="h-8 w-8 text-yellow-500" />}
-                        description="Experience Points earned"
-                    />
-                    <StatsCard
-                        title="Current Streak"
-                        value={user.current_streak}
-                        icon={<Flame className="h-8 w-8 text-orange-500" />}
-                        description="Consecutive days active"
-                    />
+                    <div className="bg-white rounded-lg shadow-sm border p-6 flex items-center gap-4">
+                        <div className="p-3 bg-yellow-100 rounded-full text-yellow-600">
+                            <Trophy className="h-8 w-8" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-gray-500">Total XP</p>
+                            <p className="text-2xl font-bold text-gray-900">{user.xp_points}</p>
+                        </div>
+                    </div>
+                    <div className="bg-white rounded-lg shadow-sm border p-6 flex items-center gap-4">
+                        <div className="p-3 bg-orange-100 rounded-full text-orange-600">
+                            <Flame className="h-8 w-8" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-gray-500">Current Streak</p>
+                            <p className="text-2xl font-bold text-gray-900">{user.current_streak} Days</p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Recent Activity (Placeholder) */}
