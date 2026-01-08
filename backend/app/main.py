@@ -46,7 +46,7 @@ app.add_middleware(
     SessionMiddleware, 
     secret_key=os.getenv("SECRET_KEY", "supersecretkey"), 
     https_only=True, # Always force secure cookies if we think we might be in prod/ngrok
-    same_site="none" # Allow cross-site cookies (needed for some redirect flows)
+    same_site="lax" # More robust for top-level navigation redirects like OAuth
 )
 
 # Trust headers from Ngrok/Proxies (X-Forwarded-Proto, etc.)

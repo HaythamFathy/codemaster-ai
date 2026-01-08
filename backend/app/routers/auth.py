@@ -156,6 +156,10 @@ async def login_google(request: Request):
 @router.get("/google/callback")
 async def auth_google_callback(request: Request, db: Session = Depends(get_db)):
     try:
+        # DEBUG: Print session keys to debug state mismatch
+        print(f"DEBUG CALLBACK SESSION KEYS: {request.session.keys()}")
+        print(f"DEBUG CALLBACK SESSION STATE: {request.session.get('state')}")
+        
         # 1. Exchange Access Token
         token = await oauth.google.authorize_access_token(request)
         
