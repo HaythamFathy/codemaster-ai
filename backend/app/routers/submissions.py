@@ -92,20 +92,31 @@ def submit_code(submission: schemas.SubmissionCreate, db: Session = Depends(get_
 
 def execute_code_local(code: str):
     import sys
-    import tempfile
+    import io
+    from contextlib import redirect_stdout, redirect_stderr
     
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as tmp:
-        tmp.write(code)
-        tmp_path = tmp.name
+    # Secure-ish execution using exec() within the same process
+    # This avoids subprocess and filesystem permission issues on Vercel
+    stdout_capture = io.StringIO()
+    stderr_capture = io.StringIO()
     
     try:
-        res = subprocess.run([sys.executable, tmp_path], capture_output=True, text=True, timeout=5)
-        return {"stdout": res.stdout, "stderr": res.stderr, "exit_code": res.returncode}
+        with redirect_stdout(stdout_capture), redirect_stderr(stderr_capture):
+            exec(code, {"__builtins__": __builtins__}, {})
+        return {
+            "stdout": stdout_capture.getvalue(),
+            "stderr": stderr_capture.getvalue(),
+            "exit_code": 0
+        }
     except Exception as e:
-         return {"stdout": "", "stderr": str(e), "exit_code": -1}
+        return {
+            "stdout": stdout_capture.getvalue(),
+            "stderr": f"{stderr_capture.getvalue()}\nRuntime Error: {str(e)}",
+            "exit_code": 1
+        }
     finally:
-        if os.path.exists(tmp_path):
-            os.unlink(tmp_path)
+        stdout_capture.close()
+        stderr_capture.close()
 
 def execute_code_docker(code: str):
     # Stub for Docker execution
