@@ -23,6 +23,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     google_sub = Column(Text, unique=True, nullable=True)
     current_streak = Column(Integer, default=0)
+    xp_points = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     submissions = relationship("Submission", back_populates="user", cascade="all, delete-orphan")

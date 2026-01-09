@@ -12,6 +12,7 @@ class UserBase(BaseModel):
     avatar_url: Optional[str] = None
     is_active: bool = True
     current_streak: int = 0
+    xp_points: int = 0
 
 class UserCreate(UserBase):
     password: str
