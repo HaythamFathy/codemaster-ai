@@ -43,7 +43,8 @@ class Course(Base):
     thumbnail_url = Column(Text, nullable=True)
     is_published = Column(Boolean, default=False)
     instructor_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    course_type = Column(Enum(CourseType, name="CourseType"), default=CourseType.PRE_RECORDED)
+    # Using String instead of Enum to avoid SQLAlchemy/Postgres type mismatch issues
+    course_type = Column(String, default="pre_recorded")
 
     instructor = relationship("User", back_populates="courses_teaching")
     lessons = relationship("Lesson", back_populates="course", cascade="all, delete-orphan")
