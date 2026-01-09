@@ -152,3 +152,13 @@ class Enrollment(EnrollmentBase):
 
     class Config:
         from_attributes = True
+
+class UserLeaderboard(BaseModel):
+    id: int
+    full_name: Optional[str] = "Anonymous"
+    avatar_url: Optional[str] = None
+    xp_points: int
+    current_streak: int
+    
+    class Config:
+        from_attributes = True

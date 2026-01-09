@@ -36,4 +36,6 @@ export const deleteLesson = (lessonId: number) => api.delete(`/lessons/${lessonI
 export const getChallenge = (lessonId: number) => api.get(`/lessons/${lessonId}/challenge`);
 export const updateChallenge = (lessonId: number, data: any) => api.post(`/lessons/${lessonId}/challenge`, data);
 
+export const getLeaderboard = () => api.get('/users/leaderboard');
+
 export default api;

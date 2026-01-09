@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import api, { getMyEnrollments } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Flame, Zap, BookOpen, Video, Code2, Loader2, GraduationCap, CheckCircle } from "lucide-react";
+import { Flame, Zap, BookOpen, Video, Code2, Loader2, GraduationCap, CheckCircle, Trophy } from "lucide-react";
 
 interface Lesson {
     id: number;
@@ -137,7 +137,52 @@ export default function DashboardPage() {
                         </div>
                     </section>
                 )}
+
+                {/* Leaderboard Preview */}
+                <section className="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-2xl p-8 text-white relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8 opacity-10">
+                        <Trophy className="h-64 w-64 text-white" />
+                    </div>
+                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div>
+                            <h2 className="text-3xl font-bold mb-4 flex items-center gap-3">
+                                <Trophy className="h-8 w-8 text-yellow-400" /> Leaderboard
+                            </h2>
+                            <p className="text-blue-100 max-w-md text-lg mb-6">
+                                Compete with other learners and climb the ranks! Complete lessons and challenges to earn XP.
+                            </p>
+                            <Button asChild size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-blue-900 font-bold border-none">
+                                <a href="/leaderboard">View Full Standings</a>
+                            </Button>
+                        </div>
+                        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 w-full md:w-96 border border-white/20">
+                            <h3 className="font-bold text-blue-100 mb-4 uppercase text-sm tracking-wider">Top Learners</h3>
+                            <div className="space-y-4">
+                                <LeaderboardPreviewRow rank={1} name="Alex Chen" xp={1250} />
+                                <LeaderboardPreviewRow rank={2} name="Sarah Smith" xp={980} />
+                                <LeaderboardPreviewRow rank={3} name="Mike Johnson" xp={850} />
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
+        </div>
+    );
+}
+
+function LeaderboardPreviewRow({ rank, name, xp }: { rank: number; name: string; xp: number }) {
+    return (
+        <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
+                    ${rank === 1 ? 'bg-yellow-500 text-blue-900' : 
+                      rank === 2 ? 'bg-gray-300 text-gray-800' : 
+                      'bg-orange-400 text-white'}`}>
+                    {rank}
+                </div>
+                <span className="font-medium text-white">{name}</span>
+            </div>
+            <span className="text-blue-200 text-sm font-mono">{xp} XP</span>
         </div>
     );
 }
