@@ -8,7 +8,7 @@ from datetime import datetime
 
 router = APIRouter()
 
-@router.post("/", response_model=schemas.Enrollment)
+@router.post("", response_model=schemas.Enrollment)
 def enroll_in_course(
     enrollment: schemas.EnrollmentCreate, 
     db: Session = Depends(get_db), 
