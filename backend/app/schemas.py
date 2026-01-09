@@ -42,6 +42,12 @@ class ChallengeBase(BaseModel):
 class ChallengeCreate(ChallengeBase):
     lesson_id: int
 
+class ChallengeUpdate(BaseModel):
+    slug: Optional[str] = None
+    problem_statement: Optional[str] = None
+    starter_code: Optional[str] = None
+    test_cases: Optional[List[dict]] = None
+
 class Challenge(ChallengeBase):
     id: int
     lesson_id: int

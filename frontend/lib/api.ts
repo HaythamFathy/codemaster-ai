@@ -27,4 +27,13 @@ export const enrollInCourse = (courseId: number) => api.post('/enrollments', { c
 export const getMyEnrollments = () => api.get('/enrollments/me');
 export const checkEnrollmentStatus = (courseId: number) => api.get(`/enrollments/${courseId}/status`);
 
+// CMS API (Lessons & Challenges)
+export const getLessons = (courseId: number) => api.get(`/lessons/${courseId}`);
+export const createLesson = (data: any) => api.post('/lessons/', data);
+export const updateLesson = (lessonId: number, data: any) => api.put(`/lessons/${lessonId}`, data);
+export const deleteLesson = (lessonId: number) => api.delete(`/lessons/${lessonId}`);
+
+export const getChallenge = (lessonId: number) => api.get(`/lessons/${lessonId}/challenge`);
+export const updateChallenge = (lessonId: number, data: any) => api.post(`/lessons/${lessonId}/challenge`, data);
+
 export default api;
