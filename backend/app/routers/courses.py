@@ -8,8 +8,12 @@ router = APIRouter()
 
 @router.get("", response_model=List[schemas.Course])
 def get_courses(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    courses = db.query(models.Course).offset(skip).limit(limit).all()
-    return courses
+    try:
+        courses = db.query(models.Course).offset(skip).limit(limit).all()
+        return courses
+    except Exception as e:
+        print(f"Error fetching courses: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{course_id}", response_model=schemas.Course)
 def get_course(course_id: int, db: Session = Depends(get_db)):
@@ -23,11 +27,15 @@ from datetime import datetime, timedelta
 
 @router.post("", response_model=schemas.Course)
 def create_course(course: schemas.CourseCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_admin)):
-    db_course = models.Course(**course.dict())
-    db.add(db_course)
-    db.commit()
-    db.refresh(db_course)
-    return db_course
+    try:
+        db_course = models.Course(**course.dict())
+        db.add(db_course)
+        db.commit()
+        db.refresh(db_course)
+        return db_course
+    except Exception as e:
+        print(f"Error creating course: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/{course_id}", response_model=schemas.Course)
 def update_course(course_id: int, course_update: schemas.CourseUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_admin)):
