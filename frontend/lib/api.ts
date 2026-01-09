@@ -22,4 +22,9 @@ export const getLessonTask = (lessonId: string) => api.get(`/api/lessons/${lesso
 
 export const submitCode = (data: { code_submitted: string; lesson_id: number }) => api.post('/submissions/submit_code', data);
 
+// Enrollment API
+export const enrollInCourse = (courseId: number) => api.post('/enrollments/', { course_id: courseId });
+export const getMyEnrollments = () => api.get('/enrollments/me');
+export const checkEnrollmentStatus = (courseId: number) => api.get(`/enrollments/${courseId}/status`);
+
 export default api;

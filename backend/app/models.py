@@ -28,6 +28,7 @@ class User(Base):
 
     submissions = relationship("Submission", back_populates="user", cascade="all, delete-orphan")
     courses_teaching = relationship("Course", back_populates="instructor")
+    enrollments = relationship("Enrollment", back_populates="user", cascade="all, delete-orphan")
 
 class CourseType(str, enum.Enum):
     ONE_ON_ONE = "one_on_one"
@@ -49,6 +50,7 @@ class Course(Base):
 
     instructor = relationship("User", back_populates="courses_teaching")
     lessons = relationship("Lesson", back_populates="course", cascade="all, delete-orphan")
+    enrollments = relationship("Enrollment", back_populates="course", cascade="all, delete-orphan")
 
 class Lesson(Base):
     __tablename__ = "lessons"
@@ -90,3 +92,28 @@ class Submission(Base):
 
     user = relationship("User", back_populates="submissions")
     challenge = relationship("Challenge", back_populates="submissions")
+
+class Enrollment(Base):
+    __tablename__ = "enrollments"
+
+    id = Column(Integer, Identity(), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    course_id = Column(Integer, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
+    enrolled_at = Column(DateTime(timezone=True), server_default=func.now())
+    # Optional: status (active, completed, dropped)
+    
+    user = relationship("User", back_populates="enrollments")
+    course = relationship("Course", back_populates="enrollments")
+    progress = relationship("LessonProgress", back_populates="enrollment", cascade="all, delete-orphan")
+
+class LessonProgress(Base):
+    __tablename__ = "lesson_progress"
+
+    id = Column(Integer, Identity(), primary_key=True)
+    enrollment_id = Column(Integer, ForeignKey("enrollments.id", ondelete="CASCADE"), nullable=False)
+    lesson_id = Column(Integer, ForeignKey("lessons.id", ondelete="CASCADE"), nullable=False)
+    is_completed = Column(Boolean, default=False)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    
+    enrollment = relationship("Enrollment", back_populates="progress")
+    lesson = relationship("Lesson")

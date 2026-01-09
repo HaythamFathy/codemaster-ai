@@ -1,10 +1,9 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/lib/api";
+import api, { enrollInCourse, getMyEnrollments } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Video, Code2 } from "lucide-react";
+import { BookOpen, Video, Code2, CheckCircle, Loader2 } from "lucide-react";
+import confetti from "canvas-confetti";
 
 interface Lesson {
     id: number;
@@ -18,38 +17,62 @@ interface Course {
     description: string;
     thumbnail_url: string;
     slug: string;
+    course_type?: string;
     lessons: Lesson[];
+}
+
+interface Enrollment {
+    course_id: number;
 }
 
 export default function CoursesPage() {
     const router = useRouter();
     const [courses, setCourses] = useState<Course[]>([]);
+    const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<number>>(new Set());
     const [loading, setLoading] = useState(true);
+    const [enrollingId, setEnrollingId] = useState<number | null>(null);
 
     useEffect(() => {
-        const fetchCourses = async () => {
+        const fetchData = async () => {
             try {
-                const response = await api.get("/courses");
-                console.log("Courses:", response.data);
-                setCourses(response.data);
+                const [coursesRes, enrollmentsRes] = await Promise.all([
+                    api.get("/courses"),
+                    getMyEnrollments().catch(() => ({ data: [] })) // Handle uncaught if not logged in
+                ]);
+
+                setCourses(coursesRes.data);
+                const enrolledIds = new Set(enrollmentsRes.data.map((e: any) => e.course_id));
+                setEnrolledCourseIds(enrolledIds as Set<number>);
+
             } catch (error) {
-                console.error("Failed to fetch courses", error);
+                console.error("Failed to fetch data", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchCourses();
+        fetchData();
     }, []);
+
+    const handleEnroll = async (courseId: number) => {
+        setEnrollingId(courseId);
+        try {
+            await enrollInCourse(courseId);
+            setEnrolledCourseIds(prev => new Set(prev).add(courseId));
+            confetti({ particleCount: 150, spread: 60 });
+        } catch (error) {
+            console.error("Failed to enroll", error);
+            alert("Failed to enroll. Please try again.");
+        } finally {
+            setEnrollingId(null);
+        }
+    };
 
     const handleStartLesson = (course: Course) => {
         if (course.lessons && course.lessons.length > 0) {
-            // Sort by order_index just in case
             const firstLesson = course.lessons.sort((a, b) => a.order_index - b.order_index)[0];
             router.push(`/learn/${course.id}/${firstLesson.id}`);
         } else {
-            // Fallback if no lessons loaded (or empty course)
-            // Just go to the generic lesson 1 route and handle 404 there or specific course page
             router.push(`/learn/${course.id}/1`);
         }
     };
@@ -57,7 +80,7 @@ export default function CoursesPage() {
     if (loading) {
         return (
             <div className="flex h-screen items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <Loader2 className="animate-spin h-12 w-12 text-blue-600" />
             </div>
         );
     }
@@ -81,55 +104,80 @@ export default function CoursesPage() {
                             <p className="text-lg">No courses available yet.</p>
                         </div>
                     ) : (
-                        courses.map((course) => (
-                            <div key={course.id} className="bg-white overflow-hidden shadow-sm rounded-xl hover:shadow-md transition-shadow duration-300 flex flex-col group">
-                                <div className="h-48 w-full relative overflow-hidden bg-gray-200">
-                                    {course.thumbnail_url ? (
-                                        <img
-                                            src={course.thumbnail_url}
-                                            alt={course.title}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                        />
-                                    ) : (
-                                        <div className="flex items-center justify-center h-full text-gray-400">
-                                            <Video className="h-12 w-12" />
-                                        </div>
-                                    )}
-                                </div>
+                        courses.map((course) => {
+                            const isEnrolled = enrolledCourseIds.has(course.id);
 
-                                <div className="p-6 flex-1 flex flex-col">
-                                    <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-1">
-                                        {course.title}
-                                    </h3>
-                                    <p className="text-gray-500 text-sm mb-4 flex-1 line-clamp-3">
-                                        {course.description || "No description available."}
-                                    </p>
-
-                                    <div className="mt-4 flex items-center justify-between text-xs text-gray-500 mb-4">
-                                        <span className="flex items-center">
-                                            <BookOpen className="h-4 w-4 mr-1" />
-                                            {course.lessons?.length || 0} Lessons
-                                        </span>
-                                        {course.course_type && (
-                                            <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize
-                                                ${course.course_type === 'one_on_one' ? 'bg-purple-100 text-purple-700' :
-                                                    course.course_type === 'group' ? 'bg-orange-100 text-orange-700' :
-                                                        'bg-blue-100 text-blue-700'}`}>
-                                                {course.course_type.replace('_', ' ')}
-                                            </span>
+                            return (
+                                <div key={course.id} className="bg-white overflow-hidden shadow-sm rounded-xl hover:shadow-md transition-shadow duration-300 flex flex-col group">
+                                    <div className="h-48 w-full relative overflow-hidden bg-gray-200">
+                                        {course.thumbnail_url ? (
+                                            <img
+                                                src={course.thumbnail_url}
+                                                alt={course.title}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                            />
+                                        ) : (
+                                            <div className="flex items-center justify-center h-full text-gray-400">
+                                                <Video className="h-12 w-12" />
+                                            </div>
+                                        )}
+                                        {isEnrolled && (
+                                            <div className="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center shadow-sm">
+                                                <CheckCircle className="w-3 h-3 mr-1" /> Enrolled
+                                            </div>
                                         )}
                                     </div>
 
-                                    <Button
-                                        className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
-                                        onClick={() => handleStartLesson(course)}
-                                    >
-                                        <Code2 className="h-4 w-4" />
-                                        Start Learning
-                                    </Button>
+                                    <div className="p-6 flex-1 flex flex-col">
+                                        <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-1">
+                                            {course.title}
+                                        </h3>
+                                        <p className="text-gray-500 text-sm mb-4 flex-1 line-clamp-3">
+                                            {course.description || "No description available."}
+                                        </p>
+
+                                        <div className="mt-4 flex items-center justify-between text-xs text-gray-500 mb-4">
+                                            <span className="flex items-center">
+                                                <BookOpen className="h-4 w-4 mr-1" />
+                                                {course.lessons?.length || 0} Lessons
+                                            </span>
+                                            {course.course_type && (
+                                                <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize
+                                                ${course.course_type === 'one_on_one' ? 'bg-purple-100 text-purple-700' :
+                                                        course.course_type === 'group' ? 'bg-orange-100 text-orange-700' :
+                                                            'bg-blue-100 text-blue-700'}`}>
+                                                    {course.course_type.replace('_', ' ')}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {isEnrolled ? (
+                                            <Button
+                                                className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+                                                onClick={() => handleStartLesson(course)}
+                                            >
+                                                <Code2 className="h-4 w-4" />
+                                                Continue Learning
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                                                onClick={() => handleEnroll(course.id)}
+                                                disabled={enrollingId === course.id}
+                                            >
+                                                {enrollingId === course.id ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <BookOpen className="h-4 w-4" />
+                                                )}
+                                                Enroll Now
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        )))}
+                            )
+                        })
+                    )}
                 </div>
             </div>
         </div>

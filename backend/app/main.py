@@ -16,6 +16,8 @@ app.include_router(courses.router, prefix="/api/courses", tags=["courses"])
 from .routers import lessons # Import lessons router
 app.include_router(lessons.router, prefix="/api/lessons", tags=["lessons"])
 app.include_router(submissions.router, prefix="/api/submissions", tags=["submissions"])
+from .routers import enrollments
+app.include_router(enrollments.router, prefix="/api/enrollments", tags=["enrollments"])
 app.include_router(ai.router, prefix="/api/ai", tags=["ai"]) # Changed /api to /api/ai for consistency if needed, or keep /api if it was base
 
 from .routers import admin

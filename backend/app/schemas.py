@@ -119,3 +119,30 @@ class Submission(SubmissionBase):
     
     class Config:
         from_attributes = True
+
+# --- Enrollment Schemas ---
+class EnrollmentBase(BaseModel):
+    pass
+
+class EnrollmentCreate(EnrollmentBase):
+    course_id: int
+
+class LessonProgressResponse(BaseModel):
+    lesson_id: int
+    is_completed: bool
+    completed_at: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True
+
+class Enrollment(EnrollmentBase):
+    id: int
+    user_id: int
+    course_id: int
+    enrolled_at: datetime
+    # Optionally include course details or progress summary
+    course: Optional[Course] = None 
+    progress: List[LessonProgressResponse] = []
+
+    class Config:
+        from_attributes = True
