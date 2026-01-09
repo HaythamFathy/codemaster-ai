@@ -1,19 +1,18 @@
 import os
 import json
-import openai
+from openai import OpenAI
 
-# Initialize client if key is available, else None
-MODEL = "gpt-3.5-turbo"
+# Initialize client
 api_key = os.getenv("OPENAI_API_KEY")
-if api_key:
-    openai.api_key = api_key
+client = OpenAI(api_key=api_key) if api_key else None
+MODEL = "gpt-3.5-turbo"
 
 def generate_challenge(video_topic: str):
     """
     Generates a coding challenge based on the video topic.
     Returns a dictionary with 'description', 'initial_code', and 'test_cases'.
     """
-    if not api_key:
+    if not client:
         import random
         challenges = [
             {
@@ -56,12 +55,13 @@ def generate_challenge(video_topic: str):
     """
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model=MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
-            ]
+            ],
+            response_format={"type": "json_object"}
         )
         content = response.choices[0].message.content
         return json.loads(content)
@@ -76,7 +76,7 @@ def analyze_submission(student_code: str, error_log: str, challenge_description:
     """
     Analyzes failed submission and provides a Socratic hint.
     """
-    if not api_key:
+    if not client:
         return f"Mock Hint: Check your logic related to {challenge_description[:20]}..."
 
     system_prompt = "You are a helpful tutor. Analyze the error and the challenge goal. Provide a Socratic hint (ask a leading question) rather than fixing the code. Do NOT reveal the answer."
@@ -94,7 +94,7 @@ def analyze_submission(student_code: str, error_log: str, challenge_description:
     """
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model=MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -109,7 +109,7 @@ def generate_success_message(stdout: str):
     """
     Generates a congratulatory message from a 'Supportive Senior Engineer' persona.
     """
-    if not api_key:
+    if not client:
         return "Great job! Your code runs perfectly. Keep it up!"
 
     system_prompt = "You are a Supportive Senior Engineer. The student just solved a coding problem. Give a short, high-energy congratulatory message."
@@ -121,7 +121,7 @@ def generate_success_message(stdout: str):
     """
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model=MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},

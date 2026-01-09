@@ -167,6 +167,40 @@ export default function EditCoursePage({ params }: { params: Promise<{ id: strin
         }
     };
 
+    const generateAIChallenge = async () => {
+        if (!currentLesson.title) {
+            alert("Please ensure the lesson has a title first.");
+            return;
+        }
+
+        const topic = prompt("Enter a topic for the challenge:", currentLesson.title);
+        if (!topic) return;
+
+        try {
+            const btn = document.getElementById("ai-gen-btn") as HTMLButtonElement | null;
+            if (btn) btn.innerText = "Generating...";
+
+            const res = await api.post("/ai/generate_challenge", { video_topic: topic });
+            const aiData = res.data;
+
+            setCurrentChallenge({
+                slug: aiData.title.toLowerCase().replace(/\s+/g, '-'),
+                problem_statement: `## ${aiData.title}\n\n${aiData.description}`,
+                starter_code: aiData.initial_code,
+                test_cases: aiData.test_cases
+            });
+
+            if (btn) btn.innerText = "✨ Generate with AI";
+            alert("Challenge generated! Review and save.");
+
+        } catch (err) {
+            console.error(err);
+            alert("Failed to generate challenge. Check server logs.");
+            const btn = document.getElementById("ai-gen-btn") as HTMLButtonElement | null;
+            if (btn) btn.innerText = "✨ Generate with AI";
+        }
+    };
+
     if (loading) return <div className="p-8 text-center text-gray-500">Loading editor...</div>;
 
     return (
@@ -348,6 +382,16 @@ export default function EditCoursePage({ params }: { params: Promise<{ id: strin
                             <button onClick={() => setIsChallengeModalOpen(false)}><X className="h-6 w-6 text-gray-400" /></button>
                         </div>
                         <div className="space-y-4 flex-1 overflow-y-auto pr-2">
+                            <div className="flex justify-end">
+                                <Button
+                                    id="ai-gen-btn"
+                                    type="button"
+                                    onClick={generateAIChallenge}
+                                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0"
+                                >
+                                    ✨ Generate with AI
+                                </Button>
+                            </div>
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase">Slug</label>
                                 <input
