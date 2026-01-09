@@ -77,7 +77,7 @@ export default function LessonPage() {
         setOutput(null);
         try {
             const res = await api.post("/submissions/submit_code", {
-                code_content: code,
+                code_submitted: code,
                 lesson_id: parseInt(params.lessonId as string)
             });
             setOutput({

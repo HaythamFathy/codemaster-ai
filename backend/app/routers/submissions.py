@@ -21,7 +21,7 @@ def submit_code(submission: schemas.SubmissionCreate, db: Session = Depends(get_
             pass 
 
         # 2. Execute Code
-        code = submission.code_content
+        code = submission.code_submitted
         mode = os.getenv("EXECUTION_MODE", "unsafe_local")
         executor_result = execute_code_docker(code) if mode == "docker" else execute_code_local(code)
 

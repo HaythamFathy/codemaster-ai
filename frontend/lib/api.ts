@@ -20,6 +20,6 @@ api.interceptors.request.use((config) => {
 
 export const getLessonTask = (lessonId: string) => api.get(`/api/lessons/${lessonId}/task`);
 
-export const submitCode = (data: { code_content: string; lesson_id: number }) => api.post('/submissions/submit_code', data);
+export const submitCode = (data: { code_submitted: string; lesson_id: number }) => api.post('/submissions/submit_code', data);
 
 export default api;
