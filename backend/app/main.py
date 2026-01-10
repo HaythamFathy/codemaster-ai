@@ -25,7 +25,8 @@ app = FastAPI(
     description="Backend API for the CodeMaster AI E-Learning Platform",
     version="1.0.0",
     docs_url="/api/docs",
-    openapi_url="/api/openapi.json"
+    openapi_url="/api/openapi.json",
+    redirect_slashes=False  # Prevent 307 redirects that might cause 405s on Vercel
 )
 
 # --- Middleware Configuration ---
