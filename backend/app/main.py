@@ -71,6 +71,7 @@ app.include_router(comments.router, prefix="/api/comments", tags=["comments"])
 app.include_router(ai.router, prefix="/api/ai", tags=["ai"])
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
 app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
 
 # RBAC / Admin Routers
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
