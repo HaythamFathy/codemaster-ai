@@ -64,6 +64,41 @@ def submit_code(submission: schemas.SubmissionCreate, db: Session = Depends(get_
         if status == "Passed" and current_user:
             current_user.xp_points += 10
             
+            # --- NEW: Update Lesson Progress ---
+            try:
+                # 1. Get Course ID from Lesson
+                lesson = db.query(models.Lesson).filter(models.Lesson.id == submission.lesson_id).first()
+                if lesson:
+                    # 2. Find Enrollment
+                    enrollment = db.query(models.Enrollment).filter(
+                        models.Enrollment.user_id == current_user.id,
+                        models.Enrollment.course_id == lesson.course_id
+                    ).first()
+                    
+                    if enrollment:
+                        # 3. Find/Create LessonProgress
+                        progress = db.query(models.LessonProgress).filter(
+                            models.LessonProgress.enrollment_id == enrollment.id,
+                            models.LessonProgress.lesson_id == lesson.id
+                        ).first()
+                        
+                        if not progress:
+                            progress = models.LessonProgress(
+                                enrollment_id=enrollment.id,
+                                lesson_id=lesson.id,
+                                is_completed=True,
+                                completed_at=datetime.utcnow()
+                            )
+                            db.add(progress)
+                        else:
+                            if not progress.is_completed:
+                                progress.is_completed = True
+                                progress.completed_at = datetime.utcnow()
+                                db.add(progress)
+            except Exception as e:
+                print(f"Error updating progress: {e}")
+                # Don't fail the submission just because progress update failed
+            
             last_submission = db.query(models.Submission).filter(
                 models.Submission.user_id == current_user.id
             ).order_by(models.Submission.submitted_at.desc()).first()

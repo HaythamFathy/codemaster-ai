@@ -10,9 +10,15 @@ class UserBase(BaseModel):
     full_name: Optional[str] = None
     role: str = "student"
     avatar_url: Optional[str] = None
+    bio: Optional[str] = None
     is_active: bool = True
     current_streak: int = 0
     xp_points: int = 0
+
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    bio: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import api, { getLeaderboard } from "@/lib/api";
+import { TableSkeleton } from "@/components/TableSkeleton";
 import { Loader2, Trophy, Medal } from "lucide-react";
 
 interface User {
@@ -24,8 +25,14 @@ export default function LeaderboardPage() {
     }, []);
 
     if (loading) return (
-        <div className="flex h-screen items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <div className="max-w-4xl mx-auto py-12 px-4">
+            <div className="text-center mb-12">
+                <h1 className="text-4xl font-extrabold text-blue-900 mb-2 flex items-center justify-center gap-3">
+                    <Trophy className="h-10 w-10 text-yellow-500" /> Leaderboard
+                </h1>
+                <p className="text-gray-600">Top learners competing for glory!</p>
+            </div>
+            <TableSkeleton rows={8} />
         </div>
     );
 

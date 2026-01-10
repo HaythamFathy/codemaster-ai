@@ -6,10 +6,30 @@ from typing import List
 
 router = APIRouter()
 
+from typing import List, Optional
+
 @router.get("", response_model=List[schemas.Course])
-def get_courses(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_courses(
+    skip: int = 0, 
+    limit: int = 100, 
+    search: Optional[str] = None,
+    course_type: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
     try:
-        courses = db.query(models.Course).offset(skip).limit(limit).all()
+        query = db.query(models.Course)
+        
+        if search:
+            search_term = f"%{search}%"
+            query = query.filter(
+                (models.Course.title.ilike(search_term)) | 
+                (models.Course.description.ilike(search_term))
+            )
+            
+        if course_type and course_type != "all":
+            query = query.filter(models.Course.course_type == course_type)
+            
+        courses = query.offset(skip).limit(limit).all()
         return courses
     except Exception as e:
         print(f"Error fetching courses: {str(e)}")

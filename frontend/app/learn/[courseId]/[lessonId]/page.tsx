@@ -38,64 +38,50 @@ export default function LessonPage() {
     const [isHintLoading, setIsHintLoading] = useState(false);
 
     useEffect(() => {
-        // ... (existing useEffect code) ...
-        if (params.courseId) fetchCourseData();
+        if (params.courseId && params.lessonId) {
+            fetchCourseData();
+        }
     }, [params.courseId, params.lessonId]);
 
-    // ... (existing handleCodeChange) ...
-
-    const runCode = async () => {
-        setIsRunning(true);
-        setOutput(null);
-        setHint(null); // Clear previous hints on new run
+    const fetchCourseData = async () => {
         try {
-            const res = await api.post("/submissions/submit_code", {
-                code_submitted: code,
-                lesson_id: parseInt(params.lessonId as string)
-            });
-            setOutput({
-                passed: res.data.status === "Passed",
-                feedback: res.data.status === "Passed" ? "Great job! Check the output." : "Test failed.",
-                stdout: res.data.stdout || res.data.status,
-                stderr: res.data.stderr
-            });
+            const courseId = parseInt(params.courseId as string);
+            const lessonId = parseInt(params.lessonId as string);
 
-            if (res.data.status === "Passed") {
-                // Get AI Praise
-                api.post("/ai/get_success", { stdout: res.data.stdout || "Success" })
-                    .then(aiRes => {
-                        if (aiRes.data.message) {
-                            setOutput(prev => prev ? ({ ...prev, feedback: aiRes.data.message }) : null);
-                        }
-                    })
-                    .catch(err => console.error("AI Praise failed", err));
+            const [courseRes, lessonRes, enrollmentRes] = await Promise.all([
+                api.get(`/courses/${courseId}`),
+                api.get(`/lessons/${lessonId}`),
+                api.get(`/enrollments/${courseId}/status`).catch(() => ({ data: { enrolled: false, progress: [] } }))
+            ]);
 
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            const courseData = courseRes.data;
+            const progressData = enrollmentRes.data.progress || [];
+
+            // Merge progress into lessons
+            if (courseData.lessons) {
+                courseData.lessons = courseData.lessons.map((l: any) => ({
+                    ...l,
+                    isCompleted: progressData.some((p: any) => p.lesson_id === l.id && p.is_completed)
+                })).sort((a: any, b: any) => a.order_index - b.order_index);
             }
-        } catch (err) {
-            console.error(err);
-            setOutput({ passed: false, feedback: "Error connecting to server." });
-        } finally {
-            setIsRunning(false);
+
+            setCourse(courseData);
+            setLesson(lessonRes.data);
+
+            // Set initial code if challenge exists
+            if (lessonRes.data.challenge && lessonRes.data.challenge.starter_code) {
+                setCode(lessonRes.data.challenge.starter_code);
+            } else {
+                setCode("# Write your python code here\nprint('Hello World')");
+            }
+
+        } catch (error) {
+            console.error("Failed to fetch lesson data", error);
         }
     };
 
-    const getHint = async () => {
-        if (!output || output.passed) return;
-        setIsHintLoading(true);
-        try {
-            const res = await api.post("/ai/get_hint", {
-                student_code: code,
-                error_log: output.stderr || output.stdout || "Wrong output",
-                challenge_description: lesson?.challenge?.problem_statement || "No description"
-            });
-            setHint(res.data.hint);
-        } catch (err) {
-            console.error("AI Hint failed", err);
-            setHint("Could not fetch hint from AI tutor.");
-        } finally {
-            setIsHintLoading(false);
-        }
+    const handleCodeChange = (newCode: string) => {
+        setCode(newCode);
     };
 
     if (!course || !lesson) return (
@@ -124,6 +110,41 @@ export default function LessonPage() {
             </header>
 
             <div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
+                {/* Sidebar Navigation */}
+                <div className="hidden w-64 flex-col border-r bg-gray-50 lg:flex">
+                    <div className="p-4 border-b">
+                        <h2 className="font-semibold text-gray-700">Course Content</h2>
+                        <div className="mt-2 text-xs text-gray-500">
+                            {course.lessons?.filter((l: any) => l.isCompleted).length}/{course.lessons?.length} Completed
+                        </div>
+                        <div className="mt-1 h-1.5 w-full bg-gray-200 rounded-full">
+                            <div
+                                className="h-1.5 bg-green-500 rounded-full transition-all"
+                                style={{ width: `${course.lessons && course.lessons.length > 0 ? (course.lessons.filter((l: any) => l.isCompleted).length / course.lessons.length) * 100 : 0}%` }}
+                            ></div>
+                        </div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-2 space-y-1">
+                        {course.lessons?.map((l: any, idx) => (
+                            <Button
+                                key={l.id}
+                                variant={l.id === lesson.id ? "secondary" : "ghost"}
+                                className={`w-full justify-start text-sm ${l.id === lesson.id ? 'bg-white shadow-sm border border-gray-100 font-medium' : 'text-gray-600'}`}
+                                asChild
+                            >
+                                <a href={`/learn/${course.id}/${l.id}`} className="flex items-center gap-3">
+                                    <div className={`flex items-center justify-center w-5 h-5 rounded-full text-[10px] border 
+                                        ${l.isCompleted ? 'bg-green-100 border-green-200 text-green-700' :
+                                            l.id === lesson.id ? 'bg-blue-100 border-blue-200 text-blue-700' : 'bg-gray-100 border-gray-200 text-gray-500'}`}>
+                                        {l.isCompleted ? <CheckCircle className="h-3 w-3" /> : idx + 1}
+                                    </div>
+                                    <span className="truncate">{l.title}</span>
+                                </a>
+                            </Button>
+                        ))}
+                    </div>
+                </div>
+
                 {/* Left Panel */}
                 <div className="flex flex-1 flex-col overflow-y-auto border-r bg-white p-6 lg:w-1/2">
                     <div className="mb-6">

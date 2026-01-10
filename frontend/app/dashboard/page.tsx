@@ -6,6 +6,7 @@ import api, { getMyEnrollments } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Flame, Zap, BookOpen, Video, Code2, Loader2, GraduationCap, CheckCircle, Trophy } from "lucide-react";
+import { TableSkeleton, DashboardSkeleton } from "@/components/TableSkeleton";
 
 interface Lesson {
     id: number;
@@ -49,9 +50,15 @@ export default function DashboardPage() {
                 setUser(userRes.data);
                 setAllCourses(coursesRes.data);
 
-                // Enrollment API returns list of { id, course: {...}, ... }
-                // We extract the course object from each enrollment
-                const enrolled = enrollmentsRes.data.map((e: any) => e.course).filter((c: any) => c !== null);
+                // Enrollment API returns list of { id, course: {...}, progress: [...] }
+                // We extract the course object and inject progress percent
+                const enrolled = enrollmentsRes.data.map((e: any) => {
+                    if (!e.course) return null;
+                    const totalLessons = e.course.lessons ? e.course.lessons.length : 0;
+                    const completedLessons = e.progress ? e.progress.filter((p: any) => p.is_completed).length : 0;
+                    const percent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+                    return { ...e.course, progressPercent: percent };
+                }).filter((c: any) => c !== null);
                 setMyCourses(enrolled);
 
             } catch (error) {
@@ -64,12 +71,14 @@ export default function DashboardPage() {
         fetchData();
     }, [router]);
 
+
+
+    // ... (imports)
+
+    // ...
+
     if (loading) {
-        return (
-            <div className="flex h-screen items-center justify-center">
-                <Loader2 className="animate-spin h-12 w-12 text-blue-600" />
-            </div>
-        );
+        return <DashboardSkeleton />;
     }
 
     if (!user) return null;
@@ -81,12 +90,18 @@ export default function DashboardPage() {
         <div className="min-h-screen bg-gray-50 p-8">
             <div className="max-w-7xl mx-auto space-y-12">
                 {/* Welcome & Stats */}
+                {/* Welcome & Stats */}
                 <header className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 pb-8 border-b border-gray-200">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user.full_name}!</h1>
-                        <p className="text-gray-500 mt-2 text-lg">Ready to likely continue your coding journey?</p>
+                        <p className="text-gray-500 mt-2 text-lg">Ready to continue your coding journey?</p>
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 items-center">
+                        <Button variant="ghost" asChild className="text-gray-600 hover:text-blue-600">
+                            <a href="/settings" className="flex items-center gap-2">
+                                <GraduationCap className="h-4 w-4" /> Profile
+                            </a>
+                        </Button>
                         <StatsCard icon={<Flame className="h-5 w-5 text-orange-500" />} label="Streak" value={`${user.current_streak} days`} />
                         <StatsCard icon={<Zap className="h-5 w-5 text-yellow-500" />} label="XP" value={`${user.xp_points} XP`} />
                     </div>
@@ -175,9 +190,9 @@ function LeaderboardPreviewRow({ rank, name, xp }: { rank: number; name: string;
         <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
-                    ${rank === 1 ? 'bg-yellow-500 text-blue-900' : 
-                      rank === 2 ? 'bg-gray-300 text-gray-800' : 
-                      'bg-orange-400 text-white'}`}>
+                    ${rank === 1 ? 'bg-yellow-500 text-blue-900' :
+                        rank === 2 ? 'bg-gray-300 text-gray-800' :
+                            'bg-orange-400 text-white'}`}>
                     {rank}
                 </div>
                 <span className="font-medium text-white">{name}</span>
@@ -202,11 +217,20 @@ function StatsCard({ icon, label, value }: { icon: React.ReactNode; label: strin
 function CourseCard({ course, isEnrolled }: { course: Course, isEnrolled?: boolean }) {
     const getStartLink = () => {
         if (course.lessons && course.lessons.length > 0) {
+            // Find first uncompleted lesson? For now just first lesson
             const firstLesson = [...course.lessons].sort((a, b) => a.order_index - b.order_index)[0];
             return `/learn/${course.id}/${firstLesson.id}`;
         }
         return `/learn/${course.id}/1`;
     };
+
+    // Mock progress for now if not available in API yet, or calculate from somewhere
+    // Ideally 'course' object here should have a 'progress' field injected from the dashboard logic
+    // But since dashboard maps 'enrollmentsRes.data.map(e => e.course)', we lose the 'progress' from the enrollment object.
+
+    // Quick Fix: let's update the Course interface in DashboardPage to include 'progress' percentage
+    // But wait, I can't easily change the props here without changing the parent.
+    // Let's modify the parent to pass "progress" prop.
 
     return (
         <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col h-full group">
@@ -232,6 +256,21 @@ function CourseCard({ course, isEnrolled }: { course: Course, isEnrolled?: boole
                     <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-1 group-hover:text-blue-600 transition-colors">{course.title}</h3>
                     <p className="text-gray-500 text-sm line-clamp-2">{course.description || "No description available."}</p>
                 </div>
+
+                {isEnrolled && (course as any).progressPercent !== undefined && (
+                    <div className="mb-4">
+                        <div className="flex justify-between text-xs text-gray-500 mb-1">
+                            <span>Progress</span>
+                            <span className="font-medium">{(course as any).progressPercent}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                                className="bg-green-500 h-2 rounded-full transition-all duration-500"
+                                style={{ width: `${(course as any).progressPercent}%` }}
+                            ></div>
+                        </div>
+                    </div>
+                )}
 
                 <div className="mt-auto pt-4 border-t border-gray-50">
                     {isEnrolled ? (

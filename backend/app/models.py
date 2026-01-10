@@ -19,6 +19,7 @@ class User(Base):
     hashed_password = Column(Text, nullable=True)
     full_name = Column(Text, nullable=True)
     avatar_url = Column(Text, nullable=True)
+    bio = Column(Text, nullable=True)
     role = Column(Enum(UserRole), default=UserRole.STUDENT)
     is_active = Column(Boolean, default=True)
     google_sub = Column(Text, unique=True, nullable=True)

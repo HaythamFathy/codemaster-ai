@@ -34,27 +34,43 @@ export default function CoursesPage() {
     const [loading, setLoading] = useState(true);
     const [enrollingId, setEnrollingId] = useState<number | null>(null);
 
+    // Search & Filter State
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedType, setSelectedType] = useState("all");
+
+    // Debounced Fetch
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [coursesRes, enrollmentsRes] = await Promise.all([
-                    api.get("/courses"),
-                    getMyEnrollments().catch(() => ({ data: [] })) // Handle uncaught if not logged in
-                ]);
+        const handler = setTimeout(() => {
+            fetchData();
+        }, 500); // 500ms debounce
 
-                setCourses(coursesRes.data);
-                const enrolledIds = new Set(enrollmentsRes.data.map((e: any) => e.course_id));
-                setEnrolledCourseIds(enrolledIds as Set<number>);
-
-            } catch (error) {
-                console.error("Failed to fetch data", error);
-            } finally {
-                setLoading(false);
-            }
+        return () => {
+            clearTimeout(handler);
         };
+    }, [searchQuery, selectedType, router]); // Re-fetch when defaults change
 
-        fetchData();
-    }, []);
+    const fetchData = async () => {
+        // setLoading(true); // Optional: show loading spinner on filter change?
+        try {
+            const params: any = {};
+            if (searchQuery) params.search = searchQuery;
+            if (selectedType && selectedType !== 'all') params.course_type = selectedType;
+
+            const [coursesRes, enrollmentsRes] = await Promise.all([
+                api.get("/courses", { params }),
+                getMyEnrollments().catch(() => ({ data: [] }))
+            ]);
+
+            setCourses(coursesRes.data);
+            const enrolledIds = new Set(enrollmentsRes.data.map((e: any) => e.course_id));
+            setEnrolledCourseIds(enrolledIds as Set<number>);
+
+        } catch (error) {
+            console.error("Failed to fetch data", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleEnroll = async (courseId: number) => {
         setEnrollingId(courseId);
@@ -90,13 +106,38 @@ export default function CoursesPage() {
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-12">
+                <div className="text-center mb-8">
                     <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
                         Available Courses
                     </h1>
                     <p className="mt-4 text-xl text-gray-600">
                         Master coding with our interactive, gamified lessons.
                     </p>
+                </div>
+
+                {/* Search & Filter Controls */}
+                <div className="flex flex-col md:flex-row gap-4 mb-8 justify-center items-center max-w-2xl mx-auto">
+                    <div className="relative w-full md:w-2/3">
+                        <input
+                            type="text"
+                            placeholder="Search courses..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                        />
+                    </div>
+                    <div className="w-full md:w-1/3">
+                        <select
+                            value={selectedType}
+                            onChange={(e) => setSelectedType(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                        >
+                            <option value="all">All Types</option>
+                            <option value="pre_recorded">Pre-Recorded</option>
+                            <option value="one_on_one">One-on-One</option>
+                            <option value="group">Group Session</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
