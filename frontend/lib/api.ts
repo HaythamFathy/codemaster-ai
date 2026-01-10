@@ -18,6 +18,23 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            if (typeof window !== 'undefined') {
+                // Clear invalid token and redirect to login
+                localStorage.removeItem('token');
+                // Avoid infinite loop if already on login page
+                if (!window.location.pathname.includes('/login')) {
+                    window.location.href = '/login?error=session_expired';
+                }
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 export const getLessonTask = (lessonId: string) => api.get(`/api/lessons/${lessonId}/task`);
 
 export const submitCode = (data: { code_submitted: string; lesson_id: number }) => api.post('/submissions/submit_code', data);

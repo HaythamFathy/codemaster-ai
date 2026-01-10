@@ -1,62 +1,81 @@
-# CodeMaster AI - Full Stack Education Platform
+# CodeMaster AI 🎓
 
-A modern, gamified coding education platform built with Next.js and FastAPI.
+CodeMaster AI is an advanced, gamified e-learning platform designed to teach Python programming through interactive lessons, AI-powered code reviews, and real-time voice tutoring.
 
-## Project Structure
-- **frontend/**: Next.js 14 (App Router), TypeScript, Tailwind CSS.
-- **backend/**: FastAPI, SQLAlchemy, Docker (optional).
+![Project Status](https://img.shields.io/badge/Status-Beta-blue)
+![Tech Stack](https://img.shields.io/badge/Stack-Next.js%2016%20%7C%20FastAPI%20%7C%20Supabase-success)
 
-## 🚀 Deployment Guide
+## 🏗️ Architecture & Tech Stack
 
-### Phase 1: Backend (Render.com)
-1.  **Create a Web Service** on Render.
-2.  **Connect your Repo** and select the `backend` folder as the Root Directory.
-3.  **Build Command:** `pip install -r requirements.txt`
-4.  **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-5.  **Environment Variables:**
+We prioritized **performance, scalability, and developer experience** in our architectural choices.
 
-| Variable | Value / Description |
-| :--- | :--- |
-| `PYTHON_VERSION` | `3.10.0` (Recommended) |
-| `SECRET_KEY` | Generate a random strong string (e.g., `openssl rand -hex 32`) |
-| `ALGORITHM` | `HS256` |
-| `GOOGLE_CLIENT_ID` | Your OAuth2 Client ID from Google Cloud Console |
-| `GOOGLE_CLIENT_SECRET` | Your OAuth2 Client Secret |
-| `ALLOWED_ORIGINS` | `https://your-frontend-project.vercel.app` (Once deployed) or `*` for testing |
-| `EXECUTION_MODE` | `unsafe_local` (REQUIRED for Free Tier / No Docker) |
-| `DATABASE_URL` | Render will provide this if you add a Postgres DB, or use SQLite for testing. |
+### Frontend: Next.js 16 (React)
+- **Why?** Next.js 16 (App Router) offers superior server-side rendering (SSR) and static site generation (SSG) capabilities, crucial for SEO and initial load performance.
+- **Key Features Used**:
+  - **Server Components**: Minimized client-side JavaScript bundle size.
+  - **Shadcn UI + Tailwind CSS v4**: For a premium, accessible, and responsive design system.
+  - **Monaco Editor**: Provides a VS Code-like experience in the browser.
 
-### Phase 2: Frontend (Vercel)
-1.  **Import Project** on Vercel.
-2.  **Select Directory:** Choose `frontend` as the root.
-3.  **Build Command:** `next build` (Default)
-4.  **Environment Variables:**
+### Backend: FastAPI (Python)
+- **Why?** Python is the native language of AI and Data Science. FastAPI provides high-performance async capabilities (Starlette) comparable to NodeJS, while allowing seamless integration with AI libraries (OpenAI, LangChain).
+- **Key Features Used**:
+  - **Async/Await**: Non-blocking I/O for AI calls and Database queries.
+  - **Pydantic**: Robust data validation and schema generation (shared with TypeScript types).
+  - **Serverless Ready**: Designed to run as a Vercel Serverless Function (`api/index.py`).
 
-| Variable | Value / Description |
-| :--- | :--- |
-| `NEXT_PUBLIC_API_URL` | `https://your-backend-service.onrender.com` (The URL from Phase 1) |
+### Database: Supabase (PostgreSQL)
+- **Why?** A fully managed PostgreSQL instance that scales. It provides built-in Authentication and Row Level Security (RLS) foundations.
+- **ORM**: SQLAlchemy is used for complex relation management and migrations.
 
-## 🛠 Local Development
+---
 
-### Backend
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 20+
+- Python 3.10+
+- Git
+
+### 1. Verification
+Run the environment checker to ensure your `.env` file is ready.
 ```bash
-cd backend
-python -m venv venv
-# Windows: venv\Scripts\activate | Mac/Linux: source venv/bin/activate
-pip install -r requirements.txt
-python seed_db.py  # Initialize DB
-uvicorn app.main:app --reload
+python check_env.py
 ```
-*Runs on http://localhost:8000*
 
-### Frontend
+### 2. Backend (Terminal 1)
+Start the FastAPI server.
+```bash
+# Activate Virtual Environment
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# Run Server (Reload enabled)
+uvicorn backend.app.main:app --reload --port 8000
+```
+*API Docs available at: http://localhost:8000/api/docs*
+
+### 3. Frontend (Terminal 2)
+Start the Next.js development server.
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-*Runs on http://localhost:3000*
+*App running at: http://localhost:3000*
 
-## 🧪 Testing
-- **Admin User:** `admin@codemaster.com` / `admin123`
-- **Student User:** `student@codemaster.com` / `password123`
+---
+
+## 🛠️ Deployment
+
+This repository is configured as a **Monorepo** for Vercel.
+- **Frontend Build**: `cd frontend && npm install && npm run build`
+- **Backend Routing**: Handled via `vercel.json` rewrites to `api/index.py`.
+
+## 🤝 Contributing
+1. Fork the repository.
+2. Create a feature branch (`git checkout -b feature/amazing-feature`).
+3. Commit your changes (`git commit -m 'Add some amazing feature'`).
+4. Push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
+
+---
+*Built with ❤️ by the CodeMaster AI Team*

@@ -11,11 +11,16 @@ interface CodeEditorProps {
 }
 
 export function CodeEditor({
-    initialCode = "# Write your code here\nprint('Hello World')",
+    value = "# Write your code here\nprint('Hello World')",
     language = "python",
     onChange,
     readOnly = false
-}: CodeEditorProps) {
+}: {
+    value?: string;
+    language?: string;
+    onChange?: (value: string | undefined) => void;
+    readOnly?: boolean;
+}) {
     const editorRef = useRef(null);
 
     const handleEditorDidMount: OnMount = (editor, monaco) => {
@@ -28,7 +33,8 @@ export function CodeEditor({
             <Editor
                 height="100%"
                 defaultLanguage={language}
-                defaultValue={initialCode}
+                language={language}
+                value={value}
                 theme="vs-dark"
                 onChange={onChange}
                 onMount={handleEditorDidMount}

@@ -23,6 +23,8 @@ export const metadata: Metadata = {
 
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { BugReportModal } from "@/components/BugReportModal";
+import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from "@/context/AuthContext";
 
 // ... (imports)
 
@@ -37,9 +39,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ErrorBoundary>
-          <Navbar />
-          {children}
-          <BugReportModal />
+          <AuthProvider>
+            <Navbar />
+            {children}
+            <Toaster />
+            <BugReportModal />
+          </AuthProvider>
         </ErrorBoundary>
       </body>
     </html>
