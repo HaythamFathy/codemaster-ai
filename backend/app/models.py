@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Enum, DateTime, Text, Identity
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy import JSON
 from sqlalchemy.sql import func
 from .database import Base
@@ -25,6 +25,8 @@ class User(Base):
     google_sub = Column(Text, unique=True, nullable=True)
     current_streak = Column(Integer, default=0)
     xp_points = Column(Integer, default=0)
+    is_pro = Column(Boolean, default=False)
+    stripe_customer_id = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     submissions = relationship("Submission", back_populates="user", cascade="all, delete-orphan")
@@ -118,3 +120,17 @@ class LessonProgress(Base):
     
     enrollment = relationship("Enrollment", back_populates="progress")
     lesson = relationship("Lesson")
+
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id = Column(Integer, Identity(), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    lesson_id = Column(Integer, ForeignKey("lessons.id", ondelete="CASCADE"), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    parent_id = Column(Integer, ForeignKey("comments.id", ondelete="CASCADE"), nullable=True)
+
+    user = relationship("User")
+    lesson = relationship("Lesson")
+    replies = relationship("Comment", backref=backref("parent", remote_side=[id]), cascade="all, delete-orphan")

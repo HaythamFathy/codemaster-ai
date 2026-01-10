@@ -14,6 +14,7 @@ class UserBase(BaseModel):
     is_active: bool = True
     current_streak: int = 0
     xp_points: int = 0
+    is_pro: bool = False
 
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
@@ -168,3 +169,23 @@ class UserLeaderboard(BaseModel):
     
     class Config:
         from_attributes = True
+
+# --- Comment Schemas ---
+class CommentBase(BaseModel):
+    content: str
+    parent_id: Optional[int] = None
+
+class CommentCreate(CommentBase):
+    lesson_id: int
+
+class Comment(CommentBase):
+    id: int
+    user_id: int
+    lesson_id: int
+    created_at: datetime
+    user: Optional[User] = None
+    replies: List['Comment'] = []
+    
+    class Config:
+        from_attributes = True
+

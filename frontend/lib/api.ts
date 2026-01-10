@@ -40,4 +40,10 @@ export const updateChallenge = (lessonId: number, data: any) => api.post(`/lesso
 
 export const getLeaderboard = () => api.get('/users/leaderboard');
 
+export const createCheckoutSession = () => api.post('/payments/create-checkout-session');
+
+// Comments API
+export const getComments = (lessonId: number) => api.get(`/comments/lesson/${lessonId}`);
+export const postComment = (data: { lesson_id: number; content: string; parent_id?: number }) => api.post('/comments/', data);
+
 export default api;

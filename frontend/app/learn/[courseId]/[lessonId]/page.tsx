@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Play, CheckCircle, AlertCircle, Loader2, BookOpen, BrainCircuit } from "lucide-react";
 import api from "@/lib/api";
 import confetti from "canvas-confetti";
+import { LessonComments } from "@/components/LessonComments";
+import { VoiceTutor } from "@/components/VoiceTutor";
 
 interface Challenge {
     slug: string;
@@ -171,6 +173,7 @@ export default function LessonPage() {
                             </div>
                         )}
                     </div>
+                    <LessonComments lessonId={lesson.id} />
                 </div>
 
                 {/* Right Panel: IDE */}
@@ -228,9 +231,11 @@ export default function LessonPage() {
                             </div>
                         ) : <p className="text-gray-500 italic">Run your code to see output...</p>}
                     </div>
+                    <VoiceTutor lessonId={lesson.id} context={code || ""} />
                 </div>
             </div>
         </div>
+
     );
 }
 

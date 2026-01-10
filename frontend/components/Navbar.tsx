@@ -13,6 +13,7 @@ interface UserProfile {
     avatar_url: string;
     email: string;
     role: string;
+    is_pro: boolean;
 }
 
 export function Navbar() {
@@ -60,6 +61,18 @@ export function Navbar() {
                 <div className="flex items-center gap-4">
                     {token ? (
                         <>
+                            {!user?.is_pro ? (
+                                <Link href="/pricing">
+                                    <Button size="sm" variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50 hidden sm:flex">
+                                        Pricing
+                                    </Button>
+                                </Link>
+                            ) : (
+                                <div className="hidden sm:flex items-center px-2 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded text-[10px] font-bold text-white uppercase tracking-wider shadow-sm">
+                                    PRO
+                                </div>
+                            )}
+
                             {role === "admin" && (
                                 <Link
                                     href="/admin"

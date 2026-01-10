@@ -18,6 +18,12 @@ app.include_router(lessons.router, prefix="/api/lessons", tags=["lessons"])
 app.include_router(submissions.router, prefix="/api/submissions", tags=["submissions"])
 from .routers import enrollments
 app.include_router(enrollments.router, prefix="/api/enrollments", tags=["enrollments"])
+from .routers import payments
+app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
+
+from .routers import comments
+app.include_router(comments.router, prefix="/api/comments", tags=["comments"])
+
 app.include_router(ai.router, prefix="/api/ai", tags=["ai"])
 
 from .routers import users

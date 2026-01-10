@@ -131,3 +131,31 @@ def generate_success_message(stdout: str):
         return response.choices[0].message.content
     except Exception as e:
         return "Awesome work! Code passed."
+
+def get_voice_response(code_snippet: str, user_question: str):
+    """
+    Answers a student's voice question with context of their code.
+    """
+    if not client:
+        return f"Mock Voice Answer: You asked '{user_question}'. Try checking line 1 of your code: {code_snippet[:20]}..."
+
+    system_prompt = "You are a friendly AI coding tutor. The student is speaking to you. Keep your answer conversational, short (under 2 sentences), and helpful. Do not read out code, just explain concepts."
+    user_prompt = f"""
+    Context (Student Code):
+    {code_snippet}
+    
+    Student Question:
+    {user_question}
+    """
+
+    try:
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ]
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return "Sorry, I'm having trouble thinking right now."
