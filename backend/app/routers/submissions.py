@@ -58,6 +58,8 @@ def submit_code(submission: schemas.SubmissionCreate, db: Session = Depends(get_
             status=status,
             passed_test_cases=passed_count,
             total_test_cases=total_count,
+            stdout=executor_result.get("stdout"),
+            stderr=executor_result.get("stderr"),
         )
         
         # 5. Gamification (Streak & XP)

@@ -91,6 +91,8 @@ class Submission(Base):
     status = Column(Text, nullable=False) # 'Passed', 'Failed', 'Error'
     passed_test_cases = Column(Integer, default=0)
     total_test_cases = Column(Integer, default=0)
+    stdout = Column(Text, nullable=True) # Execution Output
+    stderr = Column(Text, nullable=True) # Execution Error Logs
     submitted_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="submissions")

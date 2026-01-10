@@ -128,6 +128,8 @@ class Submission(SubmissionBase):
     status: str
     passed_test_cases: int
     total_test_cases: int
+    stdout: Optional[str] = None
+    stderr: Optional[str] = None
     submitted_at: datetime
     
     class Config:

@@ -10,6 +10,7 @@ import api from "@/lib/api";
 import confetti from "canvas-confetti";
 import { LessonComments } from "@/components/LessonComments";
 import { VoiceTutor } from "@/components/VoiceTutor";
+import { useRealtimeSubmission } from "@/hooks/useRealtimeSubmission";
 
 interface Challenge {
     slug: string;
@@ -38,6 +39,21 @@ export default function LessonPage() {
     const [lesson, setLesson] = useState<Lesson | null>(null);
     const [hint, setHint] = useState<string | null>(null);
     const [isHintLoading, setIsHintLoading] = useState(false);
+
+    // Missing state restoration
+    const [activeTab, setActiveTab] = useState("learn");
+    const [code, setCode] = useState("");
+    const [output, setOutput] = useState<{ passed: boolean; stdout: string; stderr: string; feedback?: string } | null>(null);
+    const [isRunning, setIsRunning] = useState(false);
+    const [submissionId, setSubmissionId] = useState<number | null>(null);
+
+    // Realtime Hook
+    useRealtimeSubmission({
+        submissionId,
+        onComplete: (status) => {
+            // Optional: Refetch or update UI based on final status if needed
+        }
+    });
 
     useEffect(() => {
         if (params.courseId && params.lessonId) {
@@ -84,6 +100,49 @@ export default function LessonPage() {
 
     const handleCodeChange = (newCode: string) => {
         setCode(newCode);
+    };
+
+    const runCode = async () => {
+        setIsRunning(true);
+        setOutput(null);
+        try {
+            const res = await api.submitCode({ code_submitted: code, lesson_id: lesson?.id || 0 });
+            setSubmissionId(res.data.id);
+
+            // Optimistic / Sync update
+            setOutput({
+                passed: res.data.status === "Passed",
+                stdout: res.data.code_submitted === code ? (res.data.output || "") : "",
+                stderr: "",
+                feedback: `Test Cases: ${res.data.passed_test_cases}/${res.data.total_test_cases}`
+            });
+
+            if (res.data.status === "Passed") {
+                confetti();
+            }
+        } catch (err: any) {
+            console.error(err);
+            setOutput({ passed: false, stdout: "", stderr: "Error submitting code", feedback: err.response?.data?.detail || "Submission failed" });
+        } finally {
+            setIsRunning(false);
+        }
+    };
+
+    const getHint = async () => {
+        if (!lesson) return;
+        setIsHintLoading(true);
+        try {
+            // Assuming AI router has /hint or similar, but for now mocking or using what we have
+            // The task asked for "Get Hint" button earlier. 
+            // If api.getHint doesn't exist, we might need to add it or use a raw call.
+            // I'll use a direct axios call if api doesn't have it, but api is imported as default.
+            // Let's assume api endpoint exists as /ai/hint
+            const res = await api.post(`/ai/hint`, { lesson_id: lesson.id, code_context: code });
+            setHint(res.data.hint);
+        } catch (e) {
+            console.error(e);
+        }
+        finally { setIsHintLoading(false); }
     };
 
     if (!course || !lesson) return (

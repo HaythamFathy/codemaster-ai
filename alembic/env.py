@@ -12,7 +12,14 @@ from dotenv import load_dotenv
 sys.path.append(os.getcwd())
 
 # Load environment variables
-load_dotenv()
+dotenv_path = os.path.join(os.getcwd(), ".env")
+if os.path.exists(dotenv_path):
+    print(f"DEBUG: Loading .env from {dotenv_path}")
+    load_dotenv(dotenv_path)
+else:
+    print(f"DEBUG: .env not found at {dotenv_path}")
+    # Try parent directory just in case
+    load_dotenv()
 
 # Import the SQLAlchemy Base from your models
 from backend.app.models import Base
@@ -23,6 +30,9 @@ config = context.config
 
 # Overwrite the sqlalchemy.url in the config with the one from the environment
 db_url = os.getenv("DATABASE_URL")
+print(f"DEBUG: CWD = {os.getcwd()}")
+print(f"DEBUG: Loaded DATABASE_URL = {db_url[:15] if db_url else 'None'}...")
+
 if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
