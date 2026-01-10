@@ -4,7 +4,7 @@ from typing import List
 from ..database import get_db
 from ..models import Comment, User
 from ..schemas import CommentCreate, Comment as CommentSchema
-from ..auth import get_current_user
+from .auth import get_current_user
 
 router = APIRouter(
     prefix="/comments",
