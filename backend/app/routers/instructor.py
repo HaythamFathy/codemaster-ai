@@ -1,3 +1,5 @@
+# Fix for Python 3.7
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from ..database import get_db
@@ -12,7 +14,7 @@ def get_current_instructor(current_user: models.User = Depends(get_current_user)
         raise HTTPException(status_code=403, detail="Instructor privileges required")
     return current_user
 
-@router.get("/courses", response_model=list[schemas.Course])
+@router.get("/courses", response_model=List[schemas.Course])
 def get_instructor_courses(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_instructor)

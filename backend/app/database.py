@@ -2,6 +2,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
 import time
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # --- Database Configuration ---
 # Default to SQLite for local ease, but prefer DATABASE_URL for production
@@ -42,10 +46,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 def get_db():
-    """
-    Dependency generator for FastAPI routes.
-    Yields a database session and ensures it is closed after the request.
-    """
     db = SessionLocal()
     try:
         yield db

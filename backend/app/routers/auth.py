@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import models, schemas
 from passlib.context import CryptContext
-from jose import JWTError, jwt
+import jwt
+from jwt import PyJWTError as JWTError
 from typing import Optional
 from datetime import datetime, timedelta
 import os

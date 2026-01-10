@@ -1,10 +1,12 @@
 import os
 import json
-from openai import OpenAI
+import openai
 
-# Initialize client
+# Initialize client configuration
 api_key = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=api_key) if api_key else None
+if api_key:
+    openai.api_key = api_key
+
 MODEL = "gpt-3.5-turbo"
 
 def generate_challenge(video_topic: str):
@@ -12,7 +14,7 @@ def generate_challenge(video_topic: str):
     Generates a coding challenge based on the video topic.
     Returns a dictionary with 'description', 'initial_code', and 'test_cases'.
     """
-    if not client:
+    if not api_key:
         import random
         challenges = [
             {
@@ -55,13 +57,15 @@ def generate_challenge(video_topic: str):
     """
 
     try:
-        response = client.chat.completions.create(
+        # Legacy API call (v0.28.1)
+        response = openai.ChatCompletion.create(
             model=MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            response_format={"type": "json_object"}
+            # v0.28 won't validate response_format, but API might accept it. 
+            # If it errors, remove likely. Keeping usage simple for now.
         )
         content = response.choices[0].message.content
         return json.loads(content)
@@ -76,7 +80,7 @@ def analyze_submission(student_code: str, error_log: str, challenge_description:
     """
     Analyzes failed submission and provides a Socratic hint.
     """
-    if not client:
+    if not api_key:
         return f"Mock Hint: Check your logic related to {challenge_description[:20]}..."
 
     system_prompt = "You are a helpful tutor. Analyze the error and the challenge goal. Provide a Socratic hint (ask a leading question) rather than fixing the code. Do NOT reveal the answer."
@@ -94,7 +98,7 @@ def analyze_submission(student_code: str, error_log: str, challenge_description:
     """
 
     try:
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model=MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -106,10 +110,7 @@ def analyze_submission(student_code: str, error_log: str, challenge_description:
         return f"Could not generate hint: {str(e)}"
 
 def generate_success_message(stdout: str):
-    """
-    Generates a congratulatory message from a 'Supportive Senior Engineer' persona.
-    """
-    if not client:
+    if not api_key:
         return "Great job! Your code runs perfectly. Keep it up!"
 
     system_prompt = "You are a Supportive Senior Engineer. The student just solved a coding problem. Give a short, high-energy congratulatory message."
@@ -121,7 +122,7 @@ def generate_success_message(stdout: str):
     """
 
     try:
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model=MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -133,10 +134,7 @@ def generate_success_message(stdout: str):
         return "Awesome work! Code passed."
 
 def get_voice_response(code_snippet: str, user_question: str):
-    """
-    Answers a student's voice question with context of their code.
-    """
-    if not client:
+    if not api_key:
         return f"Mock Voice Answer: You asked '{user_question}'. Try checking line 1 of your code: {code_snippet[:20]}..."
 
     system_prompt = "You are a friendly AI coding tutor. The student is speaking to you. Keep your answer conversational, short (under 2 sentences), and helpful. Do not read out code, just explain concepts."
@@ -149,7 +147,7 @@ def get_voice_response(code_snippet: str, user_question: str):
     """
 
     try:
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model=MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},

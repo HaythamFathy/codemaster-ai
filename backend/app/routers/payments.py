@@ -28,38 +28,36 @@ async def create_checkout_session(current_user: User = Depends(get_current_user)
             current_user.stripe_customer_id = customer_id
             db.commit()
 
+        # Priority: Use defined STRIPE_PRICE_ID (Best Practice for Subscriptions)
+        price_id = os.getenv("STRIPE_PRICE_ID")
+        
+        line_item = {}
+        if price_id:
+            line_item = {
+                'price': price_id,
+                'quantity': 1,
+            }
+        else:
+            # Fallback: Create price on the fly (Good for testing, not recommended for Production Subscriptions)
+            line_item = {
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': 'CodeMaster Pro Subscription',
+                        'description': 'Unlock premium content and AI features.'
+                    },
+                    'unit_amount': 2000, # $20.00
+                    'recurring': {
+                        'interval': 'month',
+                    },
+                },
+                'quantity': 1,
+            }
+
         checkout_session = stripe.checkout.Session.create(
             customer=customer_id,
-            # Priority: Use defined STRIPE_PRICE_ID (Best Practice for Subscriptions)
-            price_id = os.getenv("STRIPE_PRICE_ID")
-            
-            line_item = {}
-            if price_id:
-                line_item = {
-                    'price': price_id,
-                    'quantity': 1,
-                }
-            else:
-                # Fallback: Create price on the fly (Good for testing, not recommended for Production Subscriptions)
-                line_item = {
-                    'price_data': {
-                        'currency': 'usd',
-                        'product_data': {
-                            'name': 'CodeMaster Pro Subscription',
-                            'description': 'Unlock premium content and AI features.'
-                        },
-                        'unit_amount': 2000, # $20.00
-                        'recurring': {
-                            'interval': 'month',
-                        },
-                    },
-                    'quantity': 1,
-                }
-
-            checkout_session = stripe.checkout.Session.create(
-                customer=customer_id,
-                line_items=[line_item],
-                mode='subscription',
+            line_items=[line_item],
+            mode='subscription',
             success_url=os.getenv("FRONTEND_URL", "http://localhost:3000") + '/dashboard?success=true',
             cancel_url=os.getenv("FRONTEND_URL", "http://localhost:3000") + '/pricing?canceled=true',
             metadata={

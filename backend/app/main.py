@@ -13,7 +13,7 @@ from .database import engine, Base
 from .routers import (
     auth, courses, lessons, submissions, ai, 
     enrollments, payments, comments, users, 
-    admin, tasks, instructor
+    admin, tasks, instructor, analytics
 )
 
 # Initialize Database Modules
