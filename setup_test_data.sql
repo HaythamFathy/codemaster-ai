@@ -6,7 +6,7 @@
 -- ============================================
 
 -- Create Instructor User
-INSERT INTO users (email, full_name, role, is_active, xp_points, current_streak, bio)
+INSERT INTO users (email, full_name, role, is_active, xp_points, current_streak, bio, created_at)
 VALUES (
     'instructor@codemaster.ai',
     'Dr. Sarah Johnson',
@@ -14,11 +14,12 @@ VALUES (
     true,
     500,
     7,
-    'Senior Software Engineer with 10+ years of experience teaching Python and Web Development'
+    'Senior Software Engineer with 10+ years of experience teaching Python and Web Development',
+    NOW()
 ) ON CONFLICT (email) DO NOTHING;
 
 -- Create Support User
-INSERT INTO users (email, full_name, role, is_active, xp_points, current_streak, bio)
+INSERT INTO users (email, full_name, role, is_active, xp_points, current_streak, bio, created_at)
 VALUES (
     'support@codemaster.ai',
     'Alex Martinez',
@@ -26,11 +27,12 @@ VALUES (
     true,
     100,
     3,
-    'Customer Support Specialist dedicated to helping students succeed'
+    'Customer Support Specialist dedicated to helping students succeed',
+    NOW()
 ) ON CONFLICT (email) DO NOTHING;
 
 -- Create Student User 1
-INSERT INTO users (email, full_name, role, is_active, xp_points, current_streak, bio)
+INSERT INTO users (email, full_name, role, is_active, xp_points, current_streak, bio, created_at)
 VALUES (
     'student1@example.com',
     'Emma Wilson',
@@ -38,11 +40,12 @@ VALUES (
     true,
     250,
     5,
-    'Aspiring software developer learning to code'
+    'Aspiring software developer learning to code',
+    NOW() - INTERVAL '3 days'
 ) ON CONFLICT (email) DO NOTHING;
 
 -- Create Student User 2
-INSERT INTO users (email, full_name, role, is_active, xp_points, current_streak, bio)
+INSERT INTO users (email, full_name, role, is_active, xp_points, current_streak, bio, created_at)
 VALUES (
     'student2@example.com',
     'Michael Chen',
@@ -50,7 +53,8 @@ VALUES (
     true,
     180,
     2,
-    'Computer Science student passionate about AI and machine learning'
+    'Computer Science student passionate about AI and machine learning',
+    NOW() - INTERVAL '5 days'
 ) ON CONFLICT (email) DO NOTHING;
 
 -- ============================================
@@ -196,11 +200,11 @@ BEGIN
     SELECT id INTO web_course_id FROM courses WHERE slug = 'web-development-bootcamp';
     
     -- Enroll students
-    INSERT INTO enrollments (user_id, course_id)
+    INSERT INTO enrollments (user_id, course_id, enrolled_at)
     VALUES 
-        (student1_id, python_course_id),
-        (student1_id, web_course_id),
-        (student2_id, python_course_id)
+        (student1_id, python_course_id, NOW() - INTERVAL '2 days'),
+        (student1_id, web_course_id, NOW() - INTERVAL '1 day'),
+        (student2_id, python_course_id, NOW() - INTERVAL '3 days')
     ON CONFLICT DO NOTHING;
 END $$;
 
@@ -217,7 +221,7 @@ BEGIN
     SELECT id INTO challenge_id FROM challenges WHERE slug = 'python-hello-world' LIMIT 1;
     
     -- Successful submission
-    INSERT INTO submissions (user_id, challenge_id, code_submitted, status, passed_test_cases, total_test_cases, stdout)
+    INSERT INTO submissions (user_id, challenge_id, code_submitted, status, passed_test_cases, total_test_cases, stdout, submitted_at)
     VALUES (
         student1_id,
         challenge_id,
@@ -225,13 +229,14 @@ BEGIN
         'Passed',
         1,
         1,
-        'Hello, World!'
+        'Hello, World!',
+        NOW() - INTERVAL '1 day'
     );
     
     -- Failed submission
     SELECT id INTO challenge_id FROM challenges WHERE slug = 'python-variables' LIMIT 1;
     
-    INSERT INTO submissions (user_id, challenge_id, code_submitted, status, passed_test_cases, total_test_cases, stderr)
+    INSERT INTO submissions (user_id, challenge_id, code_submitted, status, passed_test_cases, total_test_cases, stderr, submitted_at)
     VALUES (
         student1_id,
         challenge_id,
@@ -239,7 +244,8 @@ BEGIN
         'Failed',
         0,
         2,
-        'Expected 24, got 25'
+        'Expected 24, got 25',
+        NOW() - INTERVAL '6 hours'
     );
 END $$;
 
