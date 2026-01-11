@@ -11,12 +11,20 @@ from contextlib import asynccontextmanager
 load_dotenv()
 
 from .database import engine, Base
-# Import all routers
-from .routers import (
-    auth, courses, lessons, submissions, ai, 
-    enrollments, payments, comments, users, 
-    admin, tasks, instructor, analytics
-)
+# Import all routers directly from their modules
+from .routers.auth import router as auth_router
+from .routers.courses import router as courses_router
+from .routers.lessons import router as lessons_router
+from .routers.submissions import router as submissions_router
+from .routers.ai import router as ai_router
+from .routers.enrollments import router as enrollments_router
+from .routers.payments import router as payments_router
+from .routers.comments import router as comments_router
+from .routers.users import router as users_router
+from .routers.admin import router as admin_router
+from .routers.tasks import router as tasks_router
+from .routers.instructor import router as instructor_router
+from .routers.analytics import router as analytics_router
 
 # --- Lifespan Event Handler ---
 @asynccontextmanager
@@ -78,21 +86,21 @@ app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
 
 # --- Router Registration ---
 # Explicit prefixes ensure cleaner API structure
-app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
-app.include_router(users.router, prefix="/api/users", tags=["users"])
-app.include_router(courses.router, prefix="/api/courses", tags=["courses"])
-app.include_router(lessons.router, prefix="/api/lessons", tags=["lessons"])
-app.include_router(enrollments.router, prefix="/api/enrollments", tags=["enrollments"])
-app.include_router(submissions.router, prefix="/api/submissions", tags=["submissions"])
-app.include_router(comments.router, prefix="/api/comments", tags=["comments"])
-app.include_router(ai.router, prefix="/api/ai", tags=["ai"])
-app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
-app.include_router(payments.router, prefix="/api/payments", tags=["payments"])
-app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
+app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
+app.include_router(users_router, prefix="/api/users", tags=["users"])
+app.include_router(courses_router, prefix="/api/courses", tags=["courses"])
+app.include_router(lessons_router, prefix="/api/lessons", tags=["lessons"])
+app.include_router(enrollments_router, prefix="/api/enrollments", tags=["enrollments"])
+app.include_router(submissions_router, prefix="/api/submissions", tags=["submissions"])
+app.include_router(comments_router, prefix="/api/comments", tags=["comments"])
+app.include_router(ai_router, prefix="/api/ai", tags=["ai"])
+app.include_router(tasks_router, prefix="/api/tasks", tags=["tasks"])
+app.include_router(payments_router, prefix="/api/payments", tags=["payments"])
+app.include_router(analytics_router, prefix="/api/analytics", tags=["analytics"])
 
 # RBAC / Admin Routers
-app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
-app.include_router(instructor.router, prefix="/api/instructor", tags=["instructor"])
+app.include_router(admin_router, prefix="/api/admin", tags=["admin"])
+app.include_router(instructor_router, prefix="/api/instructor", tags=["instructor"])
 
 
 # --- System Endpoints ---
