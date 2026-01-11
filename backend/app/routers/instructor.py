@@ -2,6 +2,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import desc, func
 from ..database import get_db
 from .. import models, schemas
 from .auth import get_current_user
@@ -25,6 +26,72 @@ def get_instructor_courses(
          return db.query(models.Course).all()
          
     return db.query(models.Course).filter(models.Course.instructor_id == current_user.id).all()
+
+@router.get("/stats")
+def get_instructor_stats(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_instructor)
+):
+    """Get instructor-specific statistics"""
+    # Get courses taught by this instructor
+    if current_user.role == models.UserRole.ADMIN:
+        courses = db.query(models.Course).all()
+    else:
+        courses = db.query(models.Course).filter(models.Course.instructor_id == current_user.id).all()
+    
+    course_ids = [c.id for c in courses]
+    
+    # Get total enrollments across all courses
+    total_enrollments = db.query(models.Enrollment).filter(
+        models.Enrollment.course_id.in_(course_ids)
+    ).count() if course_ids else 0
+    
+    # Get total submissions
+    lesson_ids = db.query(models.Lesson.id).filter(models.Lesson.course_id.in_(course_ids)).all() if course_ids else []
+    lesson_ids = [l[0] for l in lesson_ids]
+    
+    challenge_ids = db.query(models.Challenge.id).filter(models.Challenge.lesson_id.in_(lesson_ids)).all() if lesson_ids else []
+    challenge_ids = [c[0] for c in challenge_ids]
+    
+    total_submissions = db.query(models.Submission).filter(
+        models.Submission.challenge_id.in_(challenge_ids)
+    ).count() if challenge_ids else 0
+    
+    return {
+        "total_courses": len(courses),
+        "total_students": total_enrollments,
+        "total_submissions": total_submissions,
+        "courses": courses
+    }
+
+@router.get("/submissions")
+def get_recent_submissions(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_instructor)
+):
+    """Get recent submissions for instructor's courses"""
+    # Get courses taught by this instructor
+    if current_user.role == models.UserRole.ADMIN:
+        courses = db.query(models.Course).all()
+    else:
+        courses = db.query(models.Course).filter(models.Course.instructor_id == current_user.id).all()
+    
+    course_ids = [c.id for c in courses]
+    
+    # Get lesson IDs
+    lesson_ids = db.query(models.Lesson.id).filter(models.Lesson.course_id.in_(course_ids)).all() if course_ids else []
+    lesson_ids = [l[0] for l in lesson_ids]
+    
+    # Get challenge IDs
+    challenge_ids = db.query(models.Challenge.id).filter(models.Challenge.lesson_id.in_(lesson_ids)).all() if lesson_ids else []
+    challenge_ids = [c[0] for c in challenge_ids]
+    
+    # Get recent submissions
+    submissions = db.query(models.Submission).filter(
+        models.Submission.challenge_id.in_(challenge_ids)
+    ).order_by(desc(models.Submission.submitted_at)).limit(20).all() if challenge_ids else []
+    
+    return submissions
 
 @router.get("/students")
 def get_instructor_students(
