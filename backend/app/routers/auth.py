@@ -147,7 +147,8 @@ async def login_google(request: Request):
         
         # DYNAMIC: Use environment variables with local fallbacks
         backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
-        GOOGLE_REDIRECT_URI = f"{backend_url}/auth/google/callback"
+        # Ensure the correct path prefix matches main.py include_router(prefix="/api/auth")
+        GOOGLE_REDIRECT_URI = f"{backend_url}/api/auth/google/callback"
         print(f"DEBUG: Redirecting to Google with URI: {GOOGLE_REDIRECT_URI}")
         return await oauth.google.authorize_redirect(request, GOOGLE_REDIRECT_URI)
     except Exception as e:

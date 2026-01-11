@@ -5,6 +5,8 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 import os
 from dotenv import load_dotenv
 
+from contextlib import asynccontextmanager
+
 # Load environment variables
 load_dotenv()
 
@@ -16,8 +18,22 @@ from .routers import (
     admin, tasks, instructor, analytics
 )
 
-# Initialize Database Modules
-Base.metadata.create_all(bind=engine)
+# --- Lifespan Event Handler ---
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Initialize Database
+    try:
+        # Create tables if they don't exist
+        # Note: In production with migrations (Alembic), this is often skipped or handled separately
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"DATABASE CONNECTION ERROR: {e}")
+        # We don't raise here to allow the app to start and serve /health
+        # even if the DB is down. 
+    
+    yield
+    
+    # Shutdown: (Cleanup if needed)
 
 # --- Application Initialization ---
 app = FastAPI(
@@ -26,7 +42,8 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/api/docs",
     openapi_url="/api/openapi.json",
-    redirect_slashes=False  # Prevent 307 redirects that might cause 405s on Vercel
+    redirect_slashes=False,
+    lifespan=lifespan
 )
 
 # --- Middleware Configuration ---
