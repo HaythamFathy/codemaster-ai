@@ -41,6 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <h2 className="text-xl font-bold mb-8">Admin Panel</h2>
                 <nav className="space-y-4">
                     <a href="/admin" className="block hover:text-gray-300">Overview</a>
+                    <a href="/admin/analytics" className="block hover:text-gray-300">Analytics</a>
                     <a href="/admin/courses" className="block hover:text-gray-300">Manage Courses</a>
                     <a href="/admin/courses/new" className="block hover:text-gray-300">Create Course</a>
                     <a href="/dashboard" className="block text-gray-500 hover:text-white mt-8">Exit to App</a>
