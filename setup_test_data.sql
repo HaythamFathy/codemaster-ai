@@ -106,7 +106,6 @@ DO $$
 DECLARE
     python_course_id INT;
     web_course_id INT;
-    lesson_id INT;
 BEGIN
     -- Get course IDs
     SELECT id INTO python_course_id FROM courses WHERE slug = 'python-fundamentals';
@@ -120,8 +119,7 @@ BEGIN
         (python_course_id, 'Control Flow', 'Master if statements, loops, and conditional logic to control program flow.', 3, 'https://www.youtube.com/watch?v=PqFKRqpHrjw'),
         (python_course_id, 'Functions', 'Learn to write reusable code with functions and understand scope.', 4, 'https://www.youtube.com/watch?v=NE97ylAnrz4'),
         (python_course_id, 'Lists and Dictionaries', 'Work with Python''s most important data structures.', 5, 'https://www.youtube.com/watch?v=W8KRzm-HUcc')
-    ON CONFLICT DO NOTHING
-    RETURNING id INTO lesson_id;
+    ON CONFLICT DO NOTHING;
     
     -- Web Development Course Lessons
     INSERT INTO lessons (course_id, title, content, order_index, video_url)

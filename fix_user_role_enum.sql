@@ -7,6 +7,11 @@ SELECT enumlabel FROM pg_enum WHERE enumtypid = 'user_role'::regtype ORDER BY en
 -- Add missing enum values if they don't exist
 DO $$
 BEGIN
+    -- Add 'student' if it doesn't exist
+    IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'student' AND enumtypid = 'user_role'::regtype) THEN
+        ALTER TYPE user_role ADD VALUE 'student';
+    END IF;
+    
     -- Add 'instructor' if it doesn't exist
     IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'instructor' AND enumtypid = 'user_role'::regtype) THEN
         ALTER TYPE user_role ADD VALUE 'instructor';
@@ -18,5 +23,5 @@ BEGIN
     END IF;
 END$$;
 
--- Verify the enum now has all values
+-- Verify the enum now has all values (should show: admin, student, instructor, support)
 SELECT enumlabel FROM pg_enum WHERE enumtypid = 'user_role'::regtype ORDER BY enumsortorder;
