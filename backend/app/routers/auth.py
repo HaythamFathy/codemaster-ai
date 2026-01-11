@@ -145,17 +145,11 @@ async def login_google(request: Request):
         # Clear session to prevent cookie bloat (4KB limit)
         request.session.clear()
         
-        # DYNAMIC: Use environment variables with local fallbacks
-        # On Vercel, use the deployment URL directly (rewrites handle /api routing)
-        # Locally, use localhost:8000 with /api prefix
-        if os.getenv("VERCEL"):
-            # Vercel: Use VERCEL_URL or custom domain, rewrites handle /api
-            backend_url = os.getenv("BACKEND_URL", f"https://{os.getenv('VERCEL_URL', 'codemaster-ai.vercel.app')}")
-            GOOGLE_REDIRECT_URI = f"{backend_url}/api/auth/google/callback"
-        else:
-            # Local: Use localhost with /api prefix
-            backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
-            GOOGLE_REDIRECT_URI = f"{backend_url}/api/auth/google/callback"
+        # Use BACKEND_URL environment variable
+        # For Vercel: Set BACKEND_URL=https://codemaster-ai.vercel.app in environment variables
+        # For Local: Use default http://localhost:8000
+        backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+        GOOGLE_REDIRECT_URI = f"{backend_url}/api/auth/google/callback"
         print(f"DEBUG: Redirecting to Google with URI: {GOOGLE_REDIRECT_URI}")
         return await oauth.google.authorize_redirect(request, GOOGLE_REDIRECT_URI)
     except Exception as e:
