@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from ..database import get_db
 from .. import models, schemas
 from typing import List
@@ -17,7 +17,7 @@ def get_courses(
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(models.Course)
+        query = db.query(models.Course).options(joinedload(models.Course.instructor))
         
         if search:
             search_term = f"%{search}%"
@@ -37,7 +37,7 @@ def get_courses(
 
 @router.get("/{course_id}", response_model=schemas.Course)
 def get_course(course_id: int, db: Session = Depends(get_db)):
-    course = db.query(models.Course).filter(models.Course.id == course_id).first()
+    course = db.query(models.Course).options(joinedload(models.Course.instructor)).filter(models.Course.id == course_id).first()
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     return course

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, or_
 from ..database import get_db
 from .. import models, schemas
 from .auth import get_current_user
@@ -30,19 +30,25 @@ def get_all_users(db: Session = Depends(get_db), admin: models.User = Depends(ge
 
 @router.get("/users/search")
 def search_users(
-    q: str = Query(..., description="Search by email or ID"),
+    q: str = Query(..., description="Search by email, name or ID"),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_support_or_admin)
 ):
-    """Search users by email or ID - for support/admin"""
+    """Search users by email, name or ID - for support/admin"""
     # Try to search by ID first
     if q.isdigit():
         user = db.query(models.User).filter(models.User.id == int(q)).first()
         if user:
             return [user]
     
-    # Search by email
-    users = db.query(models.User).filter(models.User.email.ilike(f"%{q}%")).limit(10).all()
+    # Search by email or full_name
+    search_term = f"%{q}%"
+    users = db.query(models.User).filter(
+        or_(
+            models.User.email.ilike(search_term),
+            models.User.full_name.ilike(search_term)
+        )
+    ).limit(10).all()
     return users
 
 @router.get("/users/{user_id}/activity")

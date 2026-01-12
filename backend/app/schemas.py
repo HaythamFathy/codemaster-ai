@@ -106,10 +106,20 @@ class CourseUpdate(BaseModel):
     instructor_id: Optional[int] = None
     course_type: Optional[str] = None
 
+class UserPublic(BaseModel):
+    id: int
+    full_name: Optional[str] = "Anonymous"
+    avatar_url: Optional[str] = None
+    bio: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
 class Course(CourseBase):
     id: int
     instructor_id: Optional[int] = None
     lessons: List[Lesson] = []
+    instructor: Optional[UserPublic] = None
     
     class Config:
         from_attributes = True

@@ -31,6 +31,8 @@ export default function DashboardPage() {
     const [allCourses, setAllCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const [activity, setActivity] = useState<{ recent_submissions: any[]; recent_enrollments: any[] } | null>(null);
+
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -40,18 +42,19 @@ export default function DashboardPage() {
 
         const fetchData = async () => {
             try {
-                // Fetch User, All Courses, and Enrollments in parallel
-                const [userRes, coursesRes, enrollmentsRes] = await Promise.all([
+                // Fetch User, All Courses, Enrollments, and Activity in parallel
+                const [userRes, coursesRes, enrollmentsRes, activityRes] = await Promise.all([
                     api.get("/auth/me"),
                     api.get("/courses"),
-                    getMyEnrollments().catch(() => ({ data: [] }))
+                    getMyEnrollments().catch(() => ({ data: [] })),
+                    api.get("/users/me/activity").catch(() => ({ data: { recent_submissions: [], recent_enrollments: [] } }))
                 ]);
 
                 setUser(userRes.data);
                 setAllCourses(coursesRes.data);
+                setActivity(activityRes.data);
 
                 // Enrollment API returns list of { id, course: {...}, progress: [...] }
-                // We extract the course object and inject progress percent
                 const enrolled = enrollmentsRes.data.map((e: any) => {
                     if (!e.course) return null;
                     const totalLessons = e.course.lessons ? e.course.lessons.length : 0;
@@ -71,8 +74,6 @@ export default function DashboardPage() {
         fetchData();
     }, [router]);
 
-
-
     // ... (imports)
 
     // ...
@@ -90,7 +91,6 @@ export default function DashboardPage() {
         <div className="min-h-screen bg-gray-50 p-8">
             <div className="max-w-7xl mx-auto space-y-12">
                 {/* Welcome & Stats */}
-                {/* Welcome & Stats */}
                 <header className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 pb-8 border-b border-gray-200">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user.full_name}!</h1>
@@ -107,31 +107,73 @@ export default function DashboardPage() {
                     </div>
                 </header>
 
-                {/* My Learning */}
-                <section>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                        <BookOpen className="h-6 w-6 text-blue-600" />
-                        My Learning
-                    </h2>
-                    {myCourses.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {myCourses.map((course) => (
-                                <CourseCard key={course.id} course={course} isEnrolled={true} />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="bg-white p-10 rounded-xl shadow-sm text-center border-2 border-dashed border-gray-200">
-                            <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <GraduationCap className="h-8 w-8 text-gray-400" />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Main Content: My Learning */}
+                    <div className="lg:col-span-2 space-y-8">
+                        <section>
+                            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                                <BookOpen className="h-6 w-6 text-blue-600" />
+                                My Learning
+                            </h2>
+                            {myCourses.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {myCourses.map((course) => (
+                                        <CourseCard key={course.id} course={course} isEnrolled={true} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="bg-white p-10 rounded-xl shadow-sm text-center border-2 border-dashed border-gray-200">
+                                    <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <GraduationCap className="h-8 w-8 text-gray-400" />
+                                    </div>
+                                    <h3 className="text-lg font-medium text-gray-900">No active enrollments</h3>
+                                    <p className="text-gray-500 mb-6 max-w-sm mx-auto">You haven't enrolled in any courses yet. Browse our catalog to get started!</p>
+                                    <Button asChild className="bg-blue-600 hover:bg-blue-700">
+                                        <a href="/courses">Browse Courses</a>
+                                    </Button>
+                                </div>
+                            )}
+                        </section>
+                    </div>
+
+                    {/* Sidebar: Recent Activity */}
+                    <div className="space-y-8">
+                        <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <CheckCircle className="h-5 w-5 text-green-600" />
+                                Recent Activity
+                            </h2>
+                            <div className="space-y-4">
+                                {activity && (activity.recent_submissions.length > 0 || activity.recent_enrollments.length > 0) ? (
+                                    <>
+                                        {activity.recent_submissions.map((sub: any) => (
+                                            <div key={`sub-${sub.id}`} className="flex items-start gap-3 text-sm pb-3 border-b border-gray-50 last:border-0">
+                                                <div className={`mt-0.5 w-2 h-2 rounded-full ${sub.status === 'passed' ? 'bg-green-500' : 'bg-red-500'}`} />
+                                                <div>
+                                                    <p className="font-medium text-gray-900">
+                                                        {sub.status === 'passed' ? 'Solved' : 'Attempted'} {sub.challenge?.lesson?.title || 'Challenge'}
+                                                    </p>
+                                                    <p className="text-gray-500 text-xs">{new Date(sub.submitted_at).toLocaleDateString()}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {activity.recent_enrollments.map((enr: any) => (
+                                            <div key={`enr-${enr.id}`} className="flex items-start gap-3 text-sm pb-3 border-b border-gray-50 last:border-0">
+                                                <div className="mt-0.5 w-2 h-2 rounded-full bg-blue-500" />
+                                                <div>
+                                                    <p className="font-medium text-gray-900">Enrolled in {enr.course?.title || 'Course'}</p>
+                                                    <p className="text-gray-500 text-xs">{new Date(enr.enrolled_at).toLocaleDateString()}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </>
+                                ) : (
+                                    <p className="text-gray-400 text-sm">No recent activity.</p>
+                                )}
                             </div>
-                            <h3 className="text-lg font-medium text-gray-900">No active enrollments</h3>
-                            <p className="text-gray-500 mb-6 max-w-sm mx-auto">You haven't enrolled in any courses yet. Browse our catalog to get started!</p>
-                            <Button asChild className="bg-blue-600 hover:bg-blue-700">
-                                <a href="/courses">Browse Courses</a>
-                            </Button>
-                        </div>
-                    )}
-                </section>
+                        </section>
+                    </div>
+                </div>
 
                 {/* Explore Courses */}
                 {exploreCourses.length > 0 && (

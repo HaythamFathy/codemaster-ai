@@ -1,0 +1,16 @@
+H:\online-edu\.venv\lib\site-packages\jwt\utils.py:7: CryptographyDeprecationWarning: Python 3.7 is no longer supported by the Python core team and support for it is deprecated in cryptography. The next release of cryptography will remove support for Python 3.7.
+  from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurve
+F
+======================================================================
+FAIL: test_profile_view_and_edit (__main__.TestStudentProfile)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "tests/test_profile.py", line 57, in test_profile_view_and_edit
+    self.assertEqual(data["full_name"], "Original Name")
+AssertionError: None != 'Original Name'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.475s
+
+FAILED (failures=1)
+DEBUG: Login attempt for profile_test@test.com

@@ -78,7 +78,8 @@ def read_users_me(current_user: models.User = Depends(get_current_user)):
         "email": current_user.email,
         "role": current_user.role.value if hasattr(current_user.role, 'value') else current_user.role,
         "current_streak": current_user.current_streak,
-        "avatar_url": current_user.avatar_url
+        "avatar_url": current_user.avatar_url,
+        "xp_points": current_user.xp_points
     }
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

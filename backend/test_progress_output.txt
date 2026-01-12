@@ -1,0 +1,16 @@
+H:\online-edu\.venv\lib\site-packages\jwt\utils.py:7: CryptographyDeprecationWarning: Python 3.7 is no longer supported by the Python core team and support for it is deprecated in cryptography. The next release of cryptography will remove support for Python 3.7.
+  from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurve
+E
+======================================================================
+ERROR: test_progress_tracking_flow (__main__.TestProgressTracking)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "tests/test_progress.py", line 99, in test_progress_tracking_flow
+    self.assertEqual(me_res.json()["xp_points"], 0)
+KeyError: 'xp_points'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.493s
+
+FAILED (errors=1)
+DEBUG: Login attempt for student_prog@test.com

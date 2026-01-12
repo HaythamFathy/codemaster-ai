@@ -1,7 +1,7 @@
 # Fix for Python 3.7
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import desc, func
 from ..database import get_db
 from .. import models, schemas
@@ -11,7 +11,9 @@ import enum
 router = APIRouter()
 
 def get_current_instructor(current_user: models.User = Depends(get_current_user)):
-    if current_user.role != models.UserRole.INSTRUCTOR and current_user.role != models.UserRole.ADMIN:
+    # Safe string comparison for role
+    role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    if role_str != "instructor" and role_str != "admin":
         raise HTTPException(status_code=403, detail="Instructor privileges required")
     return current_user
 
@@ -21,11 +23,16 @@ def get_instructor_courses(
     current_user: models.User = Depends(get_current_instructor)
 ):
     """Refined to only show courses where instructor_id matches current user"""
+    role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+    
+    # Eager load lessons to prevent DetachedInstanceError during serialization
+    query = db.query(models.Course).options(joinedload(models.Course.lessons))
+    
     # Admin sees all, Instructor sees only theirs
-    if current_user.role == models.UserRole.ADMIN:
-         return db.query(models.Course).all()
+    if role_str == "admin":
+         return query.all()
          
-    return db.query(models.Course).filter(models.Course.instructor_id == current_user.id).all()
+    return query.filter(models.Course.instructor_id == current_user.id).all()
 
 @router.get("/stats")
 def get_instructor_stats(

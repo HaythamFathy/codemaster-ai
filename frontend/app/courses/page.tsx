@@ -13,6 +13,11 @@ interface Lesson {
     order_index: number;
 }
 
+interface Instructor {
+    full_name: string;
+    avatar_url?: string;
+}
+
 interface Course {
     id: number;
     title: string;
@@ -21,6 +26,7 @@ interface Course {
     slug: string;
     course_type?: string;
     lessons: Lesson[];
+    instructor?: Instructor;
 }
 
 interface Enrollment {
@@ -72,7 +78,8 @@ export default function CoursesPage() {
         }
     };
 
-    const handleEnroll = async (courseId: number) => {
+    const handleEnroll = async (e: React.MouseEvent, courseId: number) => {
+        e.stopPropagation(); // Prevent card click
         setEnrollingId(courseId);
         try {
             await enrollInCourse(courseId);
@@ -86,13 +93,18 @@ export default function CoursesPage() {
         }
     };
 
-    const handleStartLesson = (course: Course) => {
+    const handleStartLesson = (e: React.MouseEvent, course: Course) => {
+        e.stopPropagation();
         if (course.lessons && course.lessons.length > 0) {
             const firstLesson = course.lessons.sort((a, b) => a.order_index - b.order_index)[0];
             router.push(`/learn/${course.id}/${firstLesson.id}`);
         } else {
             router.push(`/learn/${course.id}/1`);
         }
+    };
+
+    const navigateToDetails = (courseId: number) => {
+        router.push(`/courses/${courseId}`);
     };
 
     if (loading) {
@@ -151,7 +163,11 @@ export default function CoursesPage() {
                             const isEnrolled = enrolledCourseIds.has(course.id);
 
                             return (
-                                <div key={course.id} className="bg-white overflow-hidden shadow-sm rounded-xl hover:shadow-md transition-shadow duration-300 flex flex-col group">
+                                <div
+                                    key={course.id}
+                                    onClick={() => navigateToDetails(course.id)}
+                                    className="bg-white overflow-hidden shadow-sm rounded-xl hover:shadow-md transition-shadow duration-300 flex flex-col group cursor-pointer"
+                                >
                                     <div className="h-48 w-full relative overflow-hidden bg-gray-200">
                                         {course.thumbnail_url ? (
                                             <img
@@ -175,6 +191,25 @@ export default function CoursesPage() {
                                         <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-1">
                                             {course.title}
                                         </h3>
+
+                                        {/* Instructor Name Display */}
+                                        {course.instructor && (
+                                            <div className="flex items-center mb-3">
+                                                <div className="h-6 w-6 rounded-full bg-gray-200 mr-2 overflow-hidden flex-shrink-0">
+                                                    {course.instructor.avatar_url ? (
+                                                        <img src={course.instructor.avatar_url} alt="" className="h-full w-full object-cover" />
+                                                    ) : (
+                                                        <div className="bg-blue-100 h-full w-full flex items-center justify-center text-xs text-blue-600 font-bold">
+                                                            {course.instructor.full_name[0]}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className="text-sm text-gray-600 truncate">
+                                                    {course.instructor.full_name}
+                                                </span>
+                                            </div>
+                                        )}
+
                                         <p className="text-gray-500 text-sm mb-4 flex-1 line-clamp-3">
                                             {course.description || "No description available."}
                                         </p>
@@ -197,7 +232,7 @@ export default function CoursesPage() {
                                         {isEnrolled ? (
                                             <Button
                                                 className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white"
-                                                onClick={() => handleStartLesson(course)}
+                                                onClick={(e) => handleStartLesson(e, course)}
                                             >
                                                 <Code2 className="h-4 w-4" />
                                                 Continue Learning
@@ -205,7 +240,7 @@ export default function CoursesPage() {
                                         ) : (
                                             <Button
                                                 className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
-                                                onClick={() => handleEnroll(course.id)}
+                                                onClick={(e) => handleEnroll(e, course.id)}
                                                 disabled={enrollingId === course.id}
                                             >
                                                 {enrollingId === course.id ? (
